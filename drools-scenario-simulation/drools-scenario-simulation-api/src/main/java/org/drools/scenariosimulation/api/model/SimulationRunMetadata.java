@@ -29,7 +29,6 @@ public class SimulationRunMetadata {
     protected AuditLog auditLog;
     protected int available;
     protected int executed;
-    protected double coveragePercentage;
     protected Map<String, Integer> outputCounter = new HashMap<>();
     protected Map<ScenarioWithIndex, Map<String, Integer>> scenarioCounter = new HashMap<>();
 
@@ -47,7 +46,6 @@ public class SimulationRunMetadata {
         this.auditLog = auditLog;
         this.outputCounter.putAll(outputCounter);
         this.scenarioCounter.putAll(scenarioCounter);
-        this.coveragePercentage = (double) executed / available;
     }
 
     public int getAvailable() {
