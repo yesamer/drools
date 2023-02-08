@@ -17,7 +17,6 @@
 package org.kie.dmn.feel.lang.ast;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 

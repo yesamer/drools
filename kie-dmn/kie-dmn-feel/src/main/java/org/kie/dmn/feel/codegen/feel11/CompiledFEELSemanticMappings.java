@@ -18,7 +18,6 @@ package org.kie.dmn.feel.codegen.feel11;
 
 import java.math.MathContext;
 import java.time.Period;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
