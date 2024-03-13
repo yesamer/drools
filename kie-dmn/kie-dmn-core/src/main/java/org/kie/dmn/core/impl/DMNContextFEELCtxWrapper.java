@@ -25,6 +25,8 @@ import org.kie.dmn.api.core.DMNContext;
 import org.kie.dmn.api.core.DMNMetadata;
 import org.kie.dmn.feel.lang.EvaluationContext;
 
+import static org.kie.dmn.core.util.CoerceUtil.coerceNumericValuesToBigDecimal;
+
 public class DMNContextFEELCtxWrapper implements DMNContext {
 
     private EvaluationContext wrapped;
@@ -51,7 +53,7 @@ public class DMNContextFEELCtxWrapper implements DMNContext {
     @Override
     public Object set(String name, Object value) {
         Object previous = wrapped.getValue(name);
-        wrapped.setValue(name, value);
+        wrapped.setValue(name, coerceNumericValuesToBigDecimal(value));
         return previous;
     }
 

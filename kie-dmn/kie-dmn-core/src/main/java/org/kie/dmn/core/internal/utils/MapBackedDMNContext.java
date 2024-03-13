@@ -29,6 +29,8 @@ import org.kie.dmn.api.core.DMNContext;
 import org.kie.dmn.api.core.DMNMetadata;
 import org.kie.dmn.core.impl.DMNMetadataImpl;
 
+import static org.kie.dmn.core.util.CoerceUtil.coerceNumericValuesToBigDecimal;
+
 public class MapBackedDMNContext implements DMNContext {
 
     private Deque<ScopeReference> stack = new LinkedList<>();
@@ -68,7 +70,7 @@ public class MapBackedDMNContext implements DMNContext {
 
     @Override
     public Object set(String name, Object value) {
-        return getCurrentEntries().put(name, value);
+        return getCurrentEntries().put(name, coerceNumericValuesToBigDecimal(value));
     }
 
     @Override
