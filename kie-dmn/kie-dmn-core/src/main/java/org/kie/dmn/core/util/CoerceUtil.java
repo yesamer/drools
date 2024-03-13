@@ -64,20 +64,19 @@ public class CoerceUtil {
         Object coercedValue = rootValue;
         if (rootValue instanceof Map) {
             Map<String, Object> mapValue = (Map<String, Object>) rootValue;
-            coercedValue = mapValue.entrySet().stream()
-                    .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), coerceNumericValuesToBigDecimal(entry.getValue())))
-                    .collect(HashMap::new, (m,v)-> m.put(v.getKey(), v.getValue()), HashMap::putAll);
-
-            /*for (Map.Entry<String, Object> entry : mapValue.entrySet()) {
-                coerceNumericValuesToBigDecimal(entry.getValue());
-                mapValue.put(entry.getKey(), coerceNumericValuesToBigDecimal(entry.getValue()));
-            } */
+            if (!mapValue.isEmpty()) {
+                coercedValue = mapValue.entrySet().stream()
+                        .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), coerceNumericValuesToBigDecimal(entry.getValue())))
+                        .collect(LinkedHashMap::new, (m, v) -> m.put(v.getKey(), v.getValue()), HashMap::putAll);
+            }
         }
         if (rootValue instanceof List) {
             List<Object> collectionValues = (List<Object>) rootValue;
-            coercedValue = collectionValues.stream()
+            if (!collectionValues.isEmpty()) {
+                coercedValue = collectionValues.stream()
                     .map(CoerceUtil::coerceNumericValuesToBigDecimal)
                     .collect(Collectors.toCollection(ArrayList::new));
+                }
         }
         if (rootValue instanceof Object[]) {
             Object[] arrayValues = (Object[]) rootValue;
