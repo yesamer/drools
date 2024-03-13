@@ -433,18 +433,18 @@ public class DMNRuntimeTypesTest extends BaseVariantTest {
             FEELPropertyAccessible driver = (FEELPropertyAccessible)allProperties.get("Driver");
             assertThat(driver.getClass().getSimpleName()).isEqualTo("TDriver");
             assertThat(driver.getFEELProperty("Name").toOptional().get()).isEqualTo("Luca");
-            assertThat(driver.getFEELProperty("Age").toOptional().get()).isEqualTo(35);
+            assertThat(driver.getFEELProperty("Age").toOptional().get()).isEqualTo(BigDecimal.valueOf(35));
             assertThat(driver.getFEELProperty("State").toOptional().get()).isEqualTo("Italy");
             assertThat(driver.getFEELProperty("City").toOptional().get()).isEqualTo("Milan");
-            assertThat(driver.getFEELProperty("Points").toOptional().get()).isEqualTo(2000);
+            assertThat(driver.getFEELProperty("Points").toOptional().get()).isEqualTo(BigDecimal.valueOf(2000));
 
             FEELPropertyAccessible violation = (FEELPropertyAccessible)allProperties.get("Violation");
             assertThat(violation.getClass().getSimpleName()).isEqualTo("TViolation");
             assertThat(violation.getFEELProperty("Code").toOptional().get()).isEqualTo("s");
             assertThat(violation.getFEELProperty("Date").toOptional().get()).isEqualTo(LocalDate.of(1984, 11, 6));
             assertThat(violation.getFEELProperty("Type").toOptional().get()).isEqualTo("speed");
-            assertThat(violation.getFEELProperty("Actual Speed").toOptional().get()).isEqualTo(120);
-            assertThat(violation.getFEELProperty("Speed Limit").toOptional().get()).isEqualTo(100);
+            assertThat(violation.getFEELProperty("Actual Speed").toOptional().get()).isEqualTo(BigDecimal.valueOf(120));
+            assertThat(violation.getFEELProperty("Speed Limit").toOptional().get()).isEqualTo(BigDecimal.valueOf(100));
 
             FEELPropertyAccessible fine = (FEELPropertyAccessible)allProperties.get("Fine");
             assertThat(fine.getClass().getSimpleName()).isEqualTo("TFine");
@@ -537,7 +537,7 @@ public class DMNRuntimeTypesTest extends BaseVariantTest {
             FEELPropertyAccessible outputSet = ((DMNContextFPAImpl)dmnResult.getContext()).getFpa();
             Map<String, Object> allProperties = outputSet.allFEELProperties();
             Object fee = allProperties.get("fee");
-            assertThat(fee).isEqualTo(100);
+            assertThat(fee).isEqualTo(BigDecimal.valueOf(100));
             FEELPropertyAccessible loanOut = (FEELPropertyAccessible)allProperties.get("Loan");
             assertThat(loanOut.getClass().getSimpleName()).isEqualTo("TLoan");
             assertThat(loanOut.getFEELProperty("amount").toOptional().get()).isEqualTo(BigDecimal.valueOf(600000));

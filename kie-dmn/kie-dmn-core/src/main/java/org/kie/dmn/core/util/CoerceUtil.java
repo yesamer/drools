@@ -66,19 +66,12 @@ public class CoerceUtil {
             Map<String, Object> mapValue = (Map<String, Object>) rootValue;
             coercedValue = mapValue.entrySet().stream()
                     .map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), coerceNumericValuesToBigDecimal(entry.getValue())))
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            Map.Entry::getValue,
-                            (a, b) -> a,
-                            LinkedHashMap::new
-                    ));
+                    .collect(HashMap::new, (m,v)-> m.put(v.getKey(), v.getValue()), HashMap::putAll);
 
-
-
-            for (Map.Entry<String, Object> entry : mapValue.entrySet()) {
+            /*for (Map.Entry<String, Object> entry : mapValue.entrySet()) {
                 coerceNumericValuesToBigDecimal(entry.getValue());
                 mapValue.put(entry.getKey(), coerceNumericValuesToBigDecimal(entry.getValue()));
-            }
+            } */
         }
         if (rootValue instanceof List) {
             List<Object> collectionValues = (List<Object>) rootValue;

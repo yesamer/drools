@@ -197,8 +197,8 @@ public class CoerceUtilTest {
         Map<String, Object> returnedValue = (Map<String, Object>) CoerceUtil.coerceNumericValuesToBigDecimal(rootValue);
 
         assertEquals(returnedValue.entrySet().size(), 1);
-        assertTrue(returnedValue.get("age") instanceof BigDecimal);
-        assertEquals(BigDecimal.valueOf(10), returnedValue.get("value"));
+        assertTrue(returnedValue.get("value") instanceof BigDecimal);
+        assertEquals(BigDecimal.valueOf(1), returnedValue.get("value"));
     }
 
     @Test
