@@ -21,80 +21,59 @@ package org.kie.dmn.core.compiler;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
 import org.kie.dmn.feel.util.Either;
 import org.kie.dmn.model.api.Import;
 import org.kie.dmn.model.api.NamespaceConsts;
-import org.kie.dmn.model.v1_1.TImport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ImportDMNResolverUtil {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ImportDMNResolverUtil.class);
 
     private ImportDMNResolverUtil() {
         // No constructor for util class.
     }
 
-    public static <T> Either<String, T> resolveImportDMN(Import _import, Collection<T> all, Function<T, QName> idExtractor) {
-        final String iNamespace = _import.getNamespace();
-        final String iName = _import.getName();
-        final String iModelName = _import.getAdditionalAttributes().get(TImport.MODELNAME_QNAME);
-        List<T> allInNS = all.stream()
-                             .filter(m -> idExtractor.apply(m).getNamespaceURI().equals(iNamespace))
-                             .collect(Collectors.toList());
-        if (allInNS.size() == 1) {
-            T located = allInNS.get(0);
-            // Check if the located DMN Model in the NS, correspond for the import `drools:modelName`. 
-            if (iModelName == null || idExtractor.apply(located).getLocalPart().equals(iModelName)) {
-                return Either.ofRight(located);
-            } else {
-                return Either.ofLeft(String.format("While importing DMN for namespace: %s, name: %s, modelName: %s, located within namespace only %s but does not match for the actual name",
-                                                   iNamespace, iName, iModelName,
-                                                   idExtractor.apply(located)));
-            }
+    public static <T> Either<String, T> resolveImportDMN(Import importElement, Collection<T> dmnAssets, Function<T, QName> idExtractor) {
+        final String importNamespace = importElement.getNamespace();  // MUST BE UNIQUE
+        final String importName = importElement.getName();  // The import prefix
+        final String importLocationUri = importElement.getLocationURI(); // Optional Location URI of the
+
+        List<T> dmnAssetsWithImportNamespace = dmnAssets.stream()
+                .filter(dmnAsset -> idExtractor.apply(dmnAsset).getNamespaceURI().equals(importNamespace))
+                .toList();
+        if (dmnAssetsWithImportNamespace.size() == 1) {
+            return Either.ofRight(dmnAssetsWithImportNamespace.get(0));
+        } else if (dmnAssetsWithImportNamespace.isEmpty()) {
+            return Either.ofLeft(String.format("Impossible to find the Imported DMN with %s namespace and %s name",
+                    importNamespace, importName));
         } else {
-            List<T> usingNSandName = allInNS.stream()
-                                            .filter(m -> idExtractor.apply(m).getLocalPart().equals(iModelName))
-                                            .collect(Collectors.toList());
-            if (usingNSandName.size() == 1) {
-                return Either.ofRight(usingNSandName.get(0));
-            } else if (usingNSandName.size() == 0) {
-                return Either.ofLeft(String.format("Could not locate required dependency while importing DMN for namespace: %s, name: %s, modelName: %s.",
-                                                   iNamespace, iName, iModelName));
-            } else {
-                return Either.ofLeft(String.format("While importing DMN for namespace: %s, name: %s, modelName: %s, could not locate required dependency within: %s.",
-                                                   iNamespace, iName, iModelName,
-                                                   allInNS.stream().map(idExtractor).collect(Collectors.toList())));
-            }
+            return Either.ofLeft(String.format("The project contains " + dmnAssetsWithImportNamespace.size() + " DMN files with the same namespace: %s, name: %s",
+                    importNamespace, importName));
         }
     }
 
-    public static enum ImportType {
+    public enum ImportType {
         UNKNOWN,
         DMN,
         PMML;
     }
 
-    public static ImportType whichImportType(Import _import) {
-        switch (_import.getImportType()) {
-            case org.kie.dmn.model.v1_1.KieDMNModelInstrumentedBase.URI_DMN:
-            case "http://www.omg.org/spec/DMN1-2Alpha/20160929/MODEL":
-            case org.kie.dmn.model.v1_2.KieDMNModelInstrumentedBase.URI_DMN:
-            case org.kie.dmn.model.v1_3.KieDMNModelInstrumentedBase.URI_DMN:
-            case org.kie.dmn.model.v1_4.KieDMNModelInstrumentedBase.URI_DMN:
-            case org.kie.dmn.model.v1_5.KieDMNModelInstrumentedBase.URI_DMN:
-                return ImportType.DMN;
-            case NamespaceConsts.PMML_3_0:
-            case NamespaceConsts.PMML_3_1:
-            case NamespaceConsts.PMML_3_2:
-            case NamespaceConsts.PMML_4_0:
-            case NamespaceConsts.PMML_4_1:
-            case NamespaceConsts.PMML_4_2:
-            case NamespaceConsts.PMML_4_3:
-                return ImportType.PMML;
-            default:
-                return ImportType.UNKNOWN;
-        }
+    public static ImportType whichImportType(Import importElement) {
+        return switch (importElement.getImportType()) {
+            case org.kie.dmn.model.v1_1.KieDMNModelInstrumentedBase.URI_DMN,
+                 "http://www.omg.org/spec/DMN1-2Alpha/20160929/MODEL",
+                 org.kie.dmn.model.v1_2.KieDMNModelInstrumentedBase.URI_DMN,
+                 org.kie.dmn.model.v1_3.KieDMNModelInstrumentedBase.URI_DMN,
+                 org.kie.dmn.model.v1_4.KieDMNModelInstrumentedBase.URI_DMN,
+                 org.kie.dmn.model.v1_5.KieDMNModelInstrumentedBase.URI_DMN -> ImportType.DMN;
+            case NamespaceConsts.PMML_3_0, NamespaceConsts.PMML_3_1, NamespaceConsts.PMML_3_2, NamespaceConsts.PMML_4_0,
+                 NamespaceConsts.PMML_4_1, NamespaceConsts.PMML_4_2, NamespaceConsts.PMML_4_3 -> ImportType.PMML;
+            default -> ImportType.UNKNOWN;
+        };
     }
 }
