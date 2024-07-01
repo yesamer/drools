@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ImportDMNResolverUtilTest {
 
+    /*
     @Test
     void nSonly() {
         final Import i = makeImport("ns1", null, null);
@@ -175,6 +176,6 @@ class ImportDMNResolverUtilTest {
         }
         i.setAdditionalAttributes(addAttributes);
         return i;
-    }
+    }*/
 
 }

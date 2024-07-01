@@ -23,10 +23,12 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.kie.api.io.Resource;
 import org.kie.api.io.ResourceWithConfiguration;
+import org.kie.dmn.api.core.DMNEntity;
 import org.kie.dmn.model.api.Definitions;
 
-public class DMNResource {
+public class DMNResource implements DMNEntity {
 
     private final QName modelID;
     private final ResourceWithConfiguration resAndConfig;
@@ -35,16 +37,6 @@ public class DMNResource {
 
     public DMNResource(Definitions definitions, ResourceWithConfiguration resAndConfig) {
         this.modelID = new QName(definitions.getNamespace(), definitions.getName());
-        this.resAndConfig = resAndConfig;
-        this.definitions = definitions;
-    }
-
-    /**
-     * @deprecated Use {@link #DMNResource(Definitions, ResourceWithConfiguration)} instead.
-     */
-    @Deprecated
-    public DMNResource(QName modelID, ResourceWithConfiguration resAndConfig, Definitions definitions) {
-        this.modelID = modelID;
         this.resAndConfig = resAndConfig;
         this.definitions = definitions;
     }
@@ -78,4 +70,18 @@ public class DMNResource {
         return "DMNResource [modelID=" + modelID + ", resource=" + resAndConfig.getResource().getSourcePath() + "]";
     }
 
+    @Override
+    public String getName() {
+        return definitions.getName();
+    }
+
+    @Override
+    public String getNamespace() {
+        return definitions.getNamespace();
+    }
+
+    @Override
+    public Resource getResource() {
+        return resAndConfig.getResource();
+    }
 }

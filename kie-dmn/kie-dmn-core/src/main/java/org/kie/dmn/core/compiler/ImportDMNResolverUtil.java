@@ -24,6 +24,7 @@ import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
+import org.kie.dmn.api.core.DMNEntity;
 import org.kie.dmn.feel.util.Either;
 import org.kie.dmn.model.api.Import;
 import org.kie.dmn.model.api.NamespaceConsts;
@@ -38,23 +39,48 @@ public class ImportDMNResolverUtil {
         // No constructor for util class.
     }
 
-    public static <T> Either<String, T> resolveImportDMN(Import importElement, Collection<T> dmnAssets, Function<T, QName> idExtractor) {
-        final String importNamespace = importElement.getNamespace();  // MUST BE UNIQUE
-        final String importName = importElement.getName();  // The import prefix
-        final String importLocationUri = importElement.getLocationURI(); // Optional Location URI of the
+    public static <T extends DMNEntity> Either<String, T> resolveImportDMN(Import importElement, Collection<T> dmnEntities, Function<T, QName> idExtractor) {
+        final String importNamespace = importElement.getNamespace();
+        final String importName = importElement.getName();
+        final String importLocationURI = importElement.getLocationURI(); // This is optional
 
-        List<T> dmnAssetsWithImportNamespace = dmnAssets.stream()
-                .filter(dmnAsset -> idExtractor.apply(dmnAsset).getNamespaceURI().equals(importNamespace))
+        LOGGER.debug("Resolving DMN Import with namespace={} name={} locationURI={}", importNamespace, importName, importLocationURI);
+
+        List<T> matchingDMNEntities = dmnEntities.stream()
+                .filter(entity -> findDMNEntity(entity, importLocationURI, importNamespace))
                 .toList();
-        if (dmnAssetsWithImportNamespace.size() == 1) {
-            return Either.ofRight(dmnAssetsWithImportNamespace.get(0));
-        } else if (dmnAssetsWithImportNamespace.isEmpty()) {
-            return Either.ofLeft(String.format("Impossible to find the Imported DMN with %s namespace and %s name",
-                    importNamespace, importName));
+        if (matchingDMNEntities.size() == 1) {
+            DMNEntity matched = matchingDMNEntities.get(0);
+            LOGGER.debug("DMN Import resolved! namespace={} name={} locationURI={}", matched.getNamespace(), matched.getName(), matched.getResource().getSourcePath());
+            return Either.ofRight(matchingDMNEntities.get(0));
         } else {
-            return Either.ofLeft(String.format("The project contains " + dmnAssetsWithImportNamespace.size() + " DMN files with the same namespace: %s, name: %s",
-                    importNamespace, importName));
+            LOGGER.error("Impossible to find the Imported DMN with {} namespace and {} name located at {}",
+                    importNamespace, importName, importLocationURI);
+            return Either.ofLeft(String.format("Impossible to find the Imported DMN with %s namespace and %s name located at %s",
+                    importNamespace, importName, importLocationURI));
         }
+    }
+
+    static boolean findDMNEntity(DMNEntity entity, String locationURI, String namespace) {
+        boolean matchedLocationURI = findDMNEntityByLocationURI(entity, locationURI);
+        boolean matchedNamespace = findByDMNEntityNamespace(entity, namespace);
+        return matchedLocationURI && matchedNamespace;
+    }
+
+    static boolean findDMNEntityByLocationURI(DMNEntity entity, String locationURI) {
+        if (locationURI == null || entity.getResource() == null || entity.getResource().getSourcePath() == null) {
+            return false;
+        }
+        String dmnEntitySourcePath = entity.getResource().getSourcePath().replace('\\', '/');
+        return dmnEntitySourcePath.endsWith(locationURI.replace('\\', '/'));
+    }
+
+    static boolean findByDMNEntityNamespace(DMNEntity entity, String namespace) {
+        if (namespace == null || entity.getNamespace() == null) {
+            return false;
+        }
+        String dmnEntityNamespace = entity.getNamespace();
+        return dmnEntityNamespace.equals(namespace);
     }
 
     public enum ImportType {
