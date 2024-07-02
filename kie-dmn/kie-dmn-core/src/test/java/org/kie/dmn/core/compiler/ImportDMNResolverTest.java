@@ -19,21 +19,36 @@
 package org.kie.dmn.core.compiler;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 
-import javax.xml.namespace.QName;
-
+import org.drools.io.FileSystemResource;
 import org.junit.jupiter.api.Test;
+import org.kie.api.io.Resource;
+import org.kie.dmn.api.core.DMNModel;
+import org.kie.dmn.core.impl.DMNModelImpl;
 import org.kie.dmn.feel.util.Either;
+import org.kie.dmn.model.api.Definitions;
 import org.kie.dmn.model.api.Import;
-import org.kie.dmn.model.v1_1.TImport;
+import org.kie.dmn.model.v1_5.TDefinitions;
+import org.kie.dmn.model.v1_5.TImport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ImportDMNResolverUtilTest {
+
+    @Test
+    void resolveImport() {
+        final Import i = makeImport("ns1", null, null);
+        final List<DMNModel> models = Arrays.asList(
+                makeDMNModel("ns1", "m1", "resources/dmn/m1.dmn"),
+                makeDMNModel("ns2", "m2", "resources/dmn/m2.dmn"),
+                makeDMNModel("ns3", "m3", "resources/dmn/m3.dmn"));
+        final Either<String, DMNModel> result = ImportDMNResolverUtil.resolve(i, models);
+        assertThat(result.isRight()).isTrue();
+        assertThat(result.getOrElse(null).getNamespace()).isEqualTo("ns1");
+
+    }
+
 
     /*
     @Test
@@ -164,18 +179,24 @@ class ImportDMNResolverUtilTest {
         assertThat(result.isLeft()).isTrue();
     }
 
-    private Import makeImport(final String namespace, final String name, final String modelName) {
+     */
+
+    private DMNModel makeDMNModel(final String namespace, final String name, final String sourcePath) {
+        final Definitions definitions = new TDefinitions();
+        definitions.setNamespace(namespace);
+        definitions.setName(name);
+        final Resource resource = new FileSystemResource();
+        resource.setSourcePath(sourcePath);
+
+        return new DMNModelImpl(definitions, resource);
+    }
+
+    private Import makeImport(final String namespace, final String name, final String localtionURI) {
         final Import i = new TImport();
         i.setNamespace(namespace);
-        final Map<QName, String> addAttributes = new HashMap<>();
-        if (name != null) {
-            addAttributes.put(TImport.NAME_QNAME, name);
-        }
-        if (modelName != null) {
-            addAttributes.put(TImport.MODELNAME_QNAME, modelName);
-        }
-        i.setAdditionalAttributes(addAttributes);
+        i.setName(name);
+        i.setLocationURI(localtionURI);
         return i;
-    }*/
+    }
 
 }

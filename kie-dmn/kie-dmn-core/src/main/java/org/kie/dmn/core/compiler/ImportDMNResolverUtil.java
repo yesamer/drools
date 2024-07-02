@@ -20,9 +20,6 @@ package org.kie.dmn.core.compiler;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
-
-import javax.xml.namespace.QName;
 
 import org.kie.dmn.api.core.DMNEntity;
 import org.kie.dmn.feel.util.Either;
@@ -39,7 +36,7 @@ public class ImportDMNResolverUtil {
         // No constructor for util class.
     }
 
-    public static <T extends DMNEntity> Either<String, T> resolveImportDMN(Import importElement, Collection<T> dmnEntities, Function<T, QName> idExtractor) {
+    public static <T extends DMNEntity> Either<String, T> resolve(Import importElement, Collection<T> dmnEntities) {
         final String importNamespace = importElement.getNamespace();
         final String importName = importElement.getName();
         final String importLocationURI = importElement.getLocationURI(); // This is optional
@@ -47,24 +44,38 @@ public class ImportDMNResolverUtil {
         LOGGER.debug("Resolving DMN Import with namespace={} name={} locationURI={}", importNamespace, importName, importLocationURI);
 
         List<T> matchingDMNEntities = dmnEntities.stream()
-                .filter(entity -> findDMNEntity(entity, importLocationURI, importNamespace))
+                .filter(entity -> findDMNEntityByLocationURI(entity, importLocationURI))
+                .filter(entity -> findByDMNEntityNamespace(entity, importNamespace))
+
                 .toList();
         if (matchingDMNEntities.size() == 1) {
             DMNEntity matched = matchingDMNEntities.get(0);
             LOGGER.debug("DMN Import resolved! namespace={} name={} locationURI={}", matched.getNamespace(), matched.getName(), matched.getResource().getSourcePath());
             return Either.ofRight(matchingDMNEntities.get(0));
-        } else {
+        } else if (matchingDMNEntities.isEmpty())  {
             LOGGER.error("Impossible to find the Imported DMN with {} namespace and {} name located at {}",
                     importNamespace, importName, importLocationURI);
             return Either.ofLeft(String.format("Impossible to find the Imported DMN with %s namespace and %s name located at %s",
                     importNamespace, importName, importLocationURI));
+        } else {
+            LOGGER.error("Found {} number of collision resolving an Imported DMN with {} namespace and {} name located at {}.",
+                    matchingDMNEntities.size(), importNamespace, importName, importLocationURI);
+                return Either.ofLeft(String.format("Found a collision resolving an Imported DMN with %s namespace and %s " +
+                                "name located at %s. There are %s DMN files with those values in your project. Please " +
+                                "change the DMN namespaces and make them unique to fix this issue.",
+                        importNamespace, importName, importLocationURI, matchingDMNEntities.size()));
         }
     }
 
-    static boolean findDMNEntity(DMNEntity entity, String locationURI, String namespace) {
-        boolean matchedLocationURI = findDMNEntityByLocationURI(entity, locationURI);
-        boolean matchedNamespace = findByDMNEntityNamespace(entity, namespace);
-        return matchedLocationURI && matchedNamespace;
+
+    static boolean findImportedDMNModel(DMNEntity entity, String locationURI, String namespace) {
+        boolean matchedByLocationURI = false;
+        if (locationURI != null) {
+            matchedByLocationURI = findDMNEntityByLocationURI(entity, locationURI);
+        }
+
+        boolean matchedByNamespace = findByDMNEntityNamespace(entity, namespace);
+        return (locationURI != null && matchedByLocationURI && matchedByNamespace) || matchedByNamespace;
     }
 
     static boolean findDMNEntityByLocationURI(DMNEntity entity, String locationURI) {

@@ -217,7 +217,7 @@ public class DMNCompilerImpl implements DMNCompiler {
         if (!dmndefs.getImport().isEmpty()) {
             for (Import i : dmndefs.getImport()) {
                 if (ImportDMNResolverUtil.whichImportType(i) == ImportType.DMN) {
-                    Either<String, DMNModel> resolvedResult = ImportDMNResolverUtil.resolveImportDMN(i, dmnModels, (DMNModel m) -> new QName(m.getNamespace(), m.getName()));
+                    Either<String, DMNModel> resolvedResult = ImportDMNResolverUtil.resolve(i, dmnModels);
                     DMNModel located = resolvedResult.cata(msg -> {
                         MsgUtil.reportMessage(logger,
                                               DMNMessage.Severity.ERROR,

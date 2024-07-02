@@ -25,8 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.namespace.QName;
-
 import org.drools.compiler.builder.impl.KnowledgeBuilderImpl;
 import org.drools.compiler.compiler.PackageRegistry;
 import org.drools.drl.ast.descr.PackageDescr;
@@ -43,13 +41,9 @@ import org.kie.dmn.api.core.DMNMessage;
 import org.kie.dmn.api.core.DMNModel;
 import org.kie.dmn.api.marshalling.DMNMarshaller;
 import org.kie.dmn.core.api.DMNFactory;
-import org.kie.dmn.core.compiler.DMNCompilerConfigurationImpl;
-import org.kie.dmn.core.compiler.DMNCompilerImpl;
-import org.kie.dmn.core.compiler.DMNDecisionLogicCompilerFactory;
-import org.kie.dmn.core.compiler.DMNProfile;
+import org.kie.dmn.core.compiler.*;
 import org.kie.dmn.core.compiler.ImportDMNResolverUtil;
 import org.kie.dmn.core.compiler.ImportDMNResolverUtil.ImportType;
-import org.kie.dmn.core.compiler.RuntimeTypeCheckOption;
 import org.kie.dmn.core.compiler.profiles.ExtendedDMNProfile;
 import org.kie.dmn.core.impl.DMNKnowledgeBuilderError;
 import org.kie.dmn.core.impl.DMNPackageImpl;
@@ -133,9 +127,9 @@ public class DMNAssemblerService implements KieAssemblerService {
         for (DMNResource r : dmnResources) {
             for (Import i : r.getDefinitions().getImport()) {
                 if (ImportDMNResolverUtil.whichImportType(i) == ImportType.DMN) {
-                    Either<String, DMNModel> inAlreadyCompiled = ImportDMNResolverUtil.resolveImportDMN(i, dmnModels, x -> new QName(x.getNamespace(), x.getName()));
+                    Either<String, DMNModel> inAlreadyCompiled = ImportDMNResolverUtil.resolve(i, dmnModels/*, x -> new QName(x.getNamespace(), x.getName())*/);
                     if (inAlreadyCompiled.isLeft()) { // the DMN Model is not already available in the KieBuilder and needs to be compiled.
-                        Either<String, DMNResource> resolvedResult = ImportDMNResolverUtil.resolveImportDMN(i, dmnResources, DMNResource::getModelID);
+                        Either<String, DMNResource> resolvedResult = ImportDMNResolverUtil.resolve(i, dmnResources /*, DMNResource::getModelID*/);
                         DMNResource located = resolvedResult.getOrElseThrow(RuntimeException::new);
                         r.addDependency(located.getModelID());
                     } else {
