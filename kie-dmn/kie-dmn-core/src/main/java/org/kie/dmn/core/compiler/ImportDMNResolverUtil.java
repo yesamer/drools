@@ -46,7 +46,6 @@ public class ImportDMNResolverUtil {
         List<T> matchingDMNEntities = dmnEntities.stream()
                 .filter(entity -> findDMNEntityByLocationURI(entity, importLocationURI))
                 .filter(entity -> findByDMNEntityNamespace(entity, importNamespace))
-
                 .toList();
         if (matchingDMNEntities.size() == 1) {
             DMNEntity matched = matchingDMNEntities.get(0);
@@ -67,23 +66,15 @@ public class ImportDMNResolverUtil {
         }
     }
 
-
-    static boolean findImportedDMNModel(DMNEntity entity, String locationURI, String namespace) {
-        boolean matchedByLocationURI = false;
-        if (locationURI != null) {
-            matchedByLocationURI = findDMNEntityByLocationURI(entity, locationURI);
-        }
-
-        boolean matchedByNamespace = findByDMNEntityNamespace(entity, namespace);
-        return (locationURI != null && matchedByLocationURI && matchedByNamespace) || matchedByNamespace;
-    }
-
     static boolean findDMNEntityByLocationURI(DMNEntity entity, String locationURI) {
         if (locationURI == null || entity.getResource() == null || entity.getResource().getSourcePath() == null) {
-            return false;
+            return true;
         }
+        String locationURIPath = locationURI.replace('\\', '/')
+                                            .replace( "../", "")
+                                            .replace( "./", "");
         String dmnEntitySourcePath = entity.getResource().getSourcePath().replace('\\', '/');
-        return dmnEntitySourcePath.endsWith(locationURI.replace('\\', '/'));
+        return dmnEntitySourcePath.endsWith(locationURIPath);
     }
 
     static boolean findByDMNEntityNamespace(DMNEntity entity, String namespace) {

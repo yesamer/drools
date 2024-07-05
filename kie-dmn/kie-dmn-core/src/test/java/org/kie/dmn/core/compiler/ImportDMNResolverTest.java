@@ -36,150 +36,153 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ImportDMNResolverUtilTest {
 
+    static String FAKE_PATH_UNIX = "/myproject/src/main/resources/dmn/";
+    static String FAKE_PATH_WINDOWS = "C:\\myproject\\src\\main\\resources\\dmn\\";
+
     @Test
-    void resolveImport() {
+    void resolveImportNoLocationURI() {
         final Import i = makeImport("ns1", null, null);
         final List<DMNModel> models = Arrays.asList(
-                makeDMNModel("ns1", "m1", "resources/dmn/m1.dmn"),
-                makeDMNModel("ns2", "m2", "resources/dmn/m2.dmn"),
-                makeDMNModel("ns3", "m3", "resources/dmn/m3.dmn"));
+                makeDMNModel("ns1", "m1", FAKE_PATH_UNIX + "m1.dmn"),
+                makeDMNModel("ns2", "m2", FAKE_PATH_UNIX +  "m2.dmn"),
+                makeDMNModel("ns3", "m3", FAKE_PATH_UNIX +  "m3.dmn"));
         final Either<String, DMNModel> result = ImportDMNResolverUtil.resolve(i, models);
         assertThat(result.isRight()).isTrue();
         assertThat(result.getOrElse(null).getNamespace()).isEqualTo("ns1");
-
     }
 
-
-    /*
     @Test
-    void nSonly() {
+    void resolveImportWithAbsoluteLocationURI() {
+        final Import i = makeImport("ns2", null, FAKE_PATH_UNIX +  "m2.dmn");
+        final List<DMNModel> models = Arrays.asList(
+                makeDMNModel("ns1", "m1", FAKE_PATH_UNIX + "m1.dmn"),
+                makeDMNModel("ns2", "m2", FAKE_PATH_UNIX + "m2.dmn"),
+                makeDMNModel("ns3", "m3", FAKE_PATH_UNIX + "m3.dmn"));
+        final Either<String, DMNModel> result = ImportDMNResolverUtil.resolve(i, models);
+        assertThat(result.isRight()).isTrue();
+        assertThat(result.getOrElse(null).getNamespace()).isEqualTo("ns2");
+    }
+
+    @Test
+    void resolveImportWithAbsoluteLocationURIWindows() {
+        final Import i = makeImport("ns2", null, FAKE_PATH_WINDOWS +  "m2.dmn");
+        final List<DMNModel> models = Arrays.asList(
+                makeDMNModel("ns1", "m1", FAKE_PATH_WINDOWS + "m1.dmn"),
+                makeDMNModel("ns2", "m2", FAKE_PATH_WINDOWS + "m2.dmn"),
+                makeDMNModel("ns3", "m3", FAKE_PATH_WINDOWS + "m3.dmn"));
+        final Either<String, DMNModel> result = ImportDMNResolverUtil.resolve(i, models);
+        assertThat(result.isRight()).isTrue();
+        assertThat(result.getOrElse(null).getNamespace()).isEqualTo("ns2");
+    }
+
+    @Test
+    void resolveImportWithRelativeLocationURI() {
+        final Import i = makeImport("ns2", null, "./m2.dmn");
+        final List<DMNModel> models = Arrays.asList(
+                makeDMNModel("ns1", "m1", FAKE_PATH_UNIX + "m1.dmn"),
+                makeDMNModel("ns2", "m2", FAKE_PATH_UNIX + "m2.dmn"),
+                makeDMNModel("ns3", "m3", FAKE_PATH_UNIX + "m3.dmn"));
+        final Either<String, DMNModel> result = ImportDMNResolverUtil.resolve(i, models);
+        assertThat(result.isRight()).isTrue();
+        assertThat(result.getOrElse(null).getNamespace()).isEqualTo("ns2");
+    }
+
+    @Test
+    void resolveImportWithRelativeLocationURI2() {
+        final Import i = makeImport("ns3", null, "./../dmn/m3.dmn");
+        final List<DMNModel> models = Arrays.asList(
+                makeDMNModel("ns1", "m1", FAKE_PATH_UNIX + "m1.dmn"),
+                makeDMNModel("ns2", "m2", FAKE_PATH_UNIX + "m2.dmn"),
+                makeDMNModel("ns3", "m3", FAKE_PATH_UNIX + "m3.dmn"));
+        final Either<String, DMNModel> result = ImportDMNResolverUtil.resolve(i, models);
+        assertThat(result.isRight()).isTrue();
+        assertThat(result.getOrElse(null).getNamespace()).isEqualTo("ns3");
+    }
+
+    @Test
+    void resolveImportWithRelativeLocationURIWindows() {
+        final Import i = makeImport("ns2", null, "\\m2.dmn");
+        final List<DMNModel> models = Arrays.asList(
+                makeDMNModel("ns1", "m1", FAKE_PATH_UNIX + "m1.dmn"),
+                makeDMNModel("ns2", "m2", FAKE_PATH_UNIX + "m2.dmn"),
+                makeDMNModel("ns3", "m3", FAKE_PATH_UNIX + "m3.dmn"));
+        final Either<String, DMNModel> result = ImportDMNResolverUtil.resolve(i, models);
+        assertThat(result.isRight()).isTrue();
+        assertThat(result.getOrElse(null).getNamespace()).isEqualTo("ns2");
+    }
+
+    @Test
+    void resolveImportWithRelativeLocationURIWindows2() {
+        final Import i = makeImport("ns3", null, "..\\dmn\\m3.dmn");
+        final List<DMNModel> models = Arrays.asList(
+                makeDMNModel("ns1", "m1", FAKE_PATH_UNIX + "m1.dmn"),
+                makeDMNModel("ns2", "m2", FAKE_PATH_UNIX + "m2.dmn"),
+                makeDMNModel("ns3", "m3", FAKE_PATH_UNIX + "m3.dmn"));
+        final Either<String, DMNModel> result = ImportDMNResolverUtil.resolve(i, models);
+        assertThat(result.isRight()).isTrue();
+        assertThat(result.getOrElse(null).getNamespace()).isEqualTo("ns3");
+    }
+
+    @Test
+    void resolveImportWithSameFolderLocationURI() {
+        final Import i = makeImport("ns3", null, "m3.dmn");
+        final List<DMNModel> models = Arrays.asList(
+                makeDMNModel("ns1", "m1", FAKE_PATH_UNIX + "m1.dmn"),
+                makeDMNModel("ns2", "m2", FAKE_PATH_UNIX + "m2.dmn"),
+                makeDMNModel("ns3", "m3", FAKE_PATH_UNIX + "m3.dmn"));
+        final Either<String, DMNModel> result = ImportDMNResolverUtil.resolve(i, models);
+        assertThat(result.isRight()).isTrue();
+        assertThat(result.getOrElse(null).getNamespace()).isEqualTo("ns3");
+    }
+
+    @Test
+    void resolveImportWithSameFolderLocationURIWindows() {
+        final Import i = makeImport("ns3", null, "m3.dmn");
+        final List<DMNModel> models = Arrays.asList(
+                makeDMNModel("ns1", "m1", FAKE_PATH_WINDOWS + "m1.dmn"),
+                makeDMNModel("ns2", "m2", FAKE_PATH_WINDOWS + "m2.dmn"),
+                makeDMNModel("ns3", "m3", FAKE_PATH_WINDOWS + "m3.dmn"));
+        final Either<String, DMNModel> result = ImportDMNResolverUtil.resolve(i, models);
+        assertThat(result.isRight()).isTrue();
+        assertThat(result.getOrElse(null).getNamespace()).isEqualTo("ns3");
+    }
+
+    @Test
+    void resolveImportNoLocationURIDuplicatedNamespace() {
         final Import i = makeImport("ns1", null, null);
-        final List<QName> available = Arrays.asList(new QName("ns1", "m1"),
-                                                    new QName("ns2", "m2"),
-                                                    new QName("ns3", "m3"));
-        final Either<String, QName> result = ImportDMNResolverUtil.resolveImportDMN(i, available, Function.identity());
-        assertThat(result.isRight()).isTrue();
-        assertThat(result.getOrElse(null)).isEqualTo(new QName("ns1", "m1"));
-    }
-
-    @Test
-    void nSandModelName() {
-        final Import i = makeImport("ns1", null, "m1");
-        final List<QName> available = Arrays.asList(new QName("ns1", "m1"),
-                                                    new QName("ns2", "m2"),
-                                                    new QName("ns3", "m3"));
-        final Either<String, QName> result = ImportDMNResolverUtil.resolveImportDMN(i, available, Function.identity());
-        assertThat(result.isRight()).isTrue();
-        assertThat(result.getOrElse(null)).isEqualTo(new QName("ns1", "m1"));
-    }
-
-    @Test
-    void nSandModelNameWithAlias() {
-        final Import i = makeImport("ns1", "aliased", "m1");
-        final List<QName> available = Arrays.asList(new QName("ns1", "m1"),
-                                                    new QName("ns2", "m2"),
-                                                    new QName("ns3", "m3"));
-        final Either<String, QName> result = ImportDMNResolverUtil.resolveImportDMN(i, available, Function.identity());
-        assertThat(result.isRight()).isTrue();
-        assertThat(result.getOrElse(null)).isEqualTo(new QName("ns1", "m1"));
-    }
-
-    @Test
-    void nSnoModelNameWithAlias() {
-        final Import i = makeImport("ns1", "mymodel", null);
-        final List<QName> available = Arrays.asList(new QName("ns1", "m1"),
-                                                    new QName("ns2", "m2"),
-                                                    new QName("ns3", "m3"));
-        final Either<String, QName> result = ImportDMNResolverUtil.resolveImportDMN(i, available, Function.identity());
-        assertThat(result.isRight()).isTrue();
-        assertThat(result.getOrElse(null)).isEqualTo(new QName("ns1", "m1"));
-    }
-
-    @Test
-    void nSandUnexistentModelName() {
-        final Import i = makeImport("ns1", null, "boh");
-        final List<QName> available = Arrays.asList(new QName("ns1", "m1"),
-                                                    new QName("ns2", "m2"),
-                                                    new QName("ns3", "m3"));
-        final Either<String, QName> result = ImportDMNResolverUtil.resolveImportDMN(i, available, Function.identity());
+        final List<DMNModel> models = Arrays.asList(
+                makeDMNModel("ns1", "m1", FAKE_PATH_UNIX + "m1.dmn"),
+                makeDMNModel("ns1", "m2", FAKE_PATH_UNIX + "m2.dmn"),
+                makeDMNModel("ns3", "m3", FAKE_PATH_UNIX + "m3.dmn"));
+        final Either<String, DMNModel> result = ImportDMNResolverUtil.resolve(i, models);
         assertThat(result.isLeft()).isTrue();
     }
 
     @Test
-    void nSnoModelNameDefaultWithAlias2() {
-        final Import i = makeImport("ns1", "boh", null);
-        final List<QName> available = Arrays.asList(new QName("ns1", "m1"),
-                                                    new QName("ns2", "m2"),
-                                                    new QName("ns3", "m3"));
-        final Either<String, QName> result = ImportDMNResolverUtil.resolveImportDMN(i, available, Function.identity());
+    void resolveImportWithLocationURIDuplicatedNamespace() {
+        final Import i = makeImport("ns1", null, FAKE_PATH_UNIX + "m2.dmn");
+        final List<DMNModel> models = Arrays.asList(
+                makeDMNModel("ns1", "m1", FAKE_PATH_UNIX + "m1.dmn"),
+                makeDMNModel("ns1", "m2", FAKE_PATH_UNIX + "m2.dmn"),
+                makeDMNModel("ns3", "m3", FAKE_PATH_UNIX + "m3.dmn"));
+        final Either<String, DMNModel> result = ImportDMNResolverUtil.resolve(i, models);
         assertThat(result.isRight()).isTrue();
-        assertThat(result.getOrElse(null)).isEqualTo(new QName("ns1", "m1"));
+        assertThat(result.getOrElse(null).getNamespace()).isEqualTo("ns1");
+        assertThat(result.getOrElse(null).getResource().getSourcePath()).isEqualTo(FAKE_PATH_UNIX + "m2.dmn");
     }
 
     @Test
-    void locateInNS() {
-        final Import i = makeImport("nsA", null, "m1");
-        final List<QName> available = Arrays.asList(new QName("nsA", "m1"),
-                                                    new QName("nsA", "m2"),
-                                                    new QName("nsB", "m3"));
-        final Either<String, QName> result = ImportDMNResolverUtil.resolveImportDMN(i, available, Function.identity());
+    void resolveImportWithLocationURIDuplicatedNamespaceWindows() {
+        final Import i = makeImport("ns1", null, FAKE_PATH_WINDOWS + "m2.dmn");
+        final List<DMNModel> models = Arrays.asList(
+                makeDMNModel("ns1", "m1", FAKE_PATH_WINDOWS + "m1.dmn"),
+                makeDMNModel("ns1", "m2", FAKE_PATH_WINDOWS + "m2.dmn"),
+                makeDMNModel("ns3", "m3", FAKE_PATH_WINDOWS + "m3.dmn"));
+        final Either<String, DMNModel> result = ImportDMNResolverUtil.resolve(i, models);
         assertThat(result.isRight()).isTrue();
-        assertThat(result.getOrElse(null)).isEqualTo(new QName("nsA", "m1"));
+        assertThat(result.getOrElse(null).getNamespace()).isEqualTo("ns1");
+        assertThat(result.getOrElse(null).getResource().getSourcePath()).isEqualTo(FAKE_PATH_WINDOWS + "m2.dmn");
     }
-
-    @Test
-    void locateInNSnoModelNameWithAlias() {
-        final Import i = makeImport("nsA", "m1", null);
-        final List<QName> available = Arrays.asList(new QName("nsA", "m1"),
-                                                    new QName("nsA", "m2"),
-                                                    new QName("nsB", "m3"));
-        final Either<String, QName> result = ImportDMNResolverUtil.resolveImportDMN(i, available, Function.identity());
-        assertThat(result.isLeft()).isTrue();
-    }
-
-    @Test
-    void locateInNSAliased() {
-        final Import i = makeImport("nsA", "aliased", "m1");
-        final List<QName> available = Arrays.asList(new QName("nsA", "m1"),
-                                                    new QName("nsA", "m2"),
-                                                    new QName("nsB", "m3"));
-        final Either<String, QName> result = ImportDMNResolverUtil.resolveImportDMN(i, available, Function.identity());
-        assertThat(result.isRight()).isTrue();
-        assertThat(result.getOrElse(null)).isEqualTo(new QName("nsA", "m1"));
-    }
-
-    @Test
-    void locateInNSunexistent() {
-        final Import i = makeImport("nsA", null, "boh");
-        final List<QName> available = Arrays.asList(new QName("nsA", "m1"),
-                                                    new QName("nsA", "m2"),
-                                                    new QName("nsB", "m3"));
-        final Either<String, QName> result = ImportDMNResolverUtil.resolveImportDMN(i, available, Function.identity());
-        assertThat(result.isLeft()).isTrue();
-    }
-
-    @Test
-    void locateInNSnoModelNameWithAlias2() {
-        final Import i = makeImport("nsA", "boh", null);
-        final List<QName> available = Arrays.asList(new QName("nsA", "m1"),
-                                                    new QName("nsA", "m2"),
-                                                    new QName("nsB", "m3"));
-        final Either<String, QName> result = ImportDMNResolverUtil.resolveImportDMN(i, available, Function.identity());
-        assertThat(result.isLeft()).isTrue();
-    }
-
-    @Test
-    void locateInNSAliasedBadScenario() {
-        // this is a BAD scenario are in namespace `nsA` there are 2 models with the same name.
-        final Import i = makeImport("nsA", "aliased", "mA");
-        final List<QName> available = Arrays.asList(new QName("nsA", "mA"),
-                                                    new QName("nsA", "mA"),
-                                                    new QName("nsB", "m3"));
-        final Either<String, QName> result = ImportDMNResolverUtil.resolveImportDMN(i, available, Function.identity());
-        assertThat(result.isLeft()).isTrue();
-    }
-
-     */
 
     private DMNModel makeDMNModel(final String namespace, final String name, final String sourcePath) {
         final Definitions definitions = new TDefinitions();
