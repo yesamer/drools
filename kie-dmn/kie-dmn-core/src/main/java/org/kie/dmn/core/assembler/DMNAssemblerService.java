@@ -132,8 +132,6 @@ public class DMNAssemblerService implements KieAssemblerService {
                         Either<String, DMNResource> resolvedResult = ImportDMNResolverUtil.resolve(i, dmnResources /*, DMNResource::getModelID*/);
                         DMNResource located = resolvedResult.getOrElseThrow(RuntimeException::new);
                         r.addDependency(located.getModelID());
-                    } else {
-                        // do nothing: the DMN Model is already available in the KieBuilder.
                     }
                 }
             }

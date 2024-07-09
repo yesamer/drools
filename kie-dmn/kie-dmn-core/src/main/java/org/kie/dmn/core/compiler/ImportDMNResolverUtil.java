@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.kie.dmn.api.core.DMNEntity;
+import org.kie.dmn.api.core.DMNModel;
+import org.kie.dmn.core.assembler.DMNResource;
 import org.kie.dmn.feel.util.Either;
 import org.kie.dmn.model.api.Import;
 import org.kie.dmn.model.api.NamespaceConsts;
@@ -44,8 +46,7 @@ public class ImportDMNResolverUtil {
         LOGGER.debug("Resolving DMN Import with namespace={} name={} locationURI={}", importNamespace, importName, importLocationURI);
 
         List<T> matchingDMNEntities = dmnEntities.stream()
-                .filter(entity -> findDMNEntityByLocationURI(entity, importLocationURI))
-                .filter(entity -> findByDMNEntityNamespace(entity, importNamespace))
+                .filter(entity -> filterDMNEntityByNamespaceAndLocationURI(entity, importLocationURI, importNamespace))
                 .toList();
         if (matchingDMNEntities.size() == 1) {
             DMNEntity matched = matchingDMNEntities.get(0);
@@ -66,23 +67,63 @@ public class ImportDMNResolverUtil {
         }
     }
 
-    static boolean findDMNEntityByLocationURI(DMNEntity entity, String locationURI) {
-        if (locationURI == null || entity.getResource() == null || entity.getResource().getSourcePath() == null) {
-            return true;
+    static boolean filterDMNEntityByNamespaceAndLocationURI(DMNEntity entity, String locationURI, String namespace) {
+        boolean isLocationURIMatchedOrMissing = true;
+        if (locationURI != null && entity.getResource() != null && entity.getResource().getSourcePath() != null) {
+            LOGGER.debug("Relying on the locationURI={} to determine the import", locationURI);
+            isLocationURIMatchedOrMissing = checkDMNEntityLocationURI(entity, locationURI);
         }
+        boolean isNamespacesMatched = checkDMNEntityNamespace(entity, namespace);
+
+        return isNamespacesMatched && isLocationURIMatchedOrMissing;
+    }
+
+    static boolean checkDMNEntityLocationURI(DMNEntity entity, String locationURI) {
         String locationURIPath = locationURI.replace('\\', '/')
                                             .replace( "../", "")
                                             .replace( "./", "");
         String dmnEntitySourcePath = entity.getResource().getSourcePath().replace('\\', '/');
+        LOGGER.debug("LocationURI: {}, Sanitized LocationURI: {}, DMN Model path: {}",
+                locationURI,
+                locationURIPath,
+                dmnEntitySourcePath);
         return dmnEntitySourcePath.endsWith(locationURIPath);
     }
 
-    static boolean findByDMNEntityNamespace(DMNEntity entity, String namespace) {
+    static boolean checkDMNEntityNamespace(DMNEntity entity, String namespace) {
         if (namespace == null || entity.getNamespace() == null) {
             return false;
         }
         String dmnEntityNamespace = entity.getNamespace();
+        LOGGER.debug("Comparing DMNModel's namespace={} with namespace={}", dmnEntityNamespace, namespace);
+
         return dmnEntityNamespace.equals(namespace);
+    }
+
+    public static class DMNFile {
+        private final String namespace;
+        private final String sourcePath;
+
+        protected DMNFile(String namespace, String sourcePath) {
+            this.namespace = namespace;
+            this.sourcePath = sourcePath;
+        }
+
+        public static DMNFile of(DMNResource resource) {
+            return new DMNFile(resource.getNamespace(), resource.getResAndConfig().getResource().getSourcePath());
+        }
+
+        public static DMNFile of(DMNModel model) {
+            return new DMNFile(model.getNamespace(), model.getResource().getSourcePath());
+        }
+
+        public String getNamespace() {
+            return namespace;
+        }
+
+        public String getSourcePath() {
+            return sourcePath;
+        }
     }
 
     public enum ImportType {
