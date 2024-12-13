@@ -153,11 +153,6 @@
          being used by different plugins to make sure the module/bundle names are consistent. -->
     <java.module.name/>
 
-    <!-- Plugin version overrides.
-         IMPORTANT: always explain the reason for overriding the plugin version! -->
-    <!-- Surefire version 2.19.1 coming from parent is buggy and kie-osgi tests in droolsjbpm-integration are failing because of that. -->
-    <version.surefire.plugin>2.22.1</version.surefire.plugin>
-
     <version.plugin.annotations>3.7.1</version.plugin.annotations>
     <version.artifact.transfer>0.9.1</version.artifact.transfer>
     <version.shared.utils>3.3.4</version.shared.utils>
@@ -173,8 +168,7 @@
     <enforcer.failOnBannedDependencies>true</enforcer.failOnBannedDependencies>
     <!-- Set to "true" on every project that has no violations. -->
     <spotbugs.failOnViolation>false</spotbugs.failOnViolation>
-    <!-- replaces findbugs-maven-plugin -->
-    <version.com.github.spotbugs-maven-plugin>3.1.8</version.com.github.spotbugs-maven-plugin>
+
 
     <maven.min.version>3.8.1</maven.min.version>
     <!-- property for productisation to know the last released version -->
@@ -202,10 +196,14 @@
 
     <!-- Plugin versions -->
     <version.build.helper.maven.plugin>3.6.0</version.build.helper.maven.plugin>
+    <!-- replaces findbugs-maven-plugin -->
+    <version.com.github.spotbugs-maven-plugin>3.1.12</version.com.github.spotbugs-maven-plugin>
+    <version.exec.maven.plugin>1.6.0</version.exec.maven.plugin>
     <version.io.smallrye.jandex-maven-plugin>${version.io.smallrye.jandex}</version.io.smallrye.jandex-maven-plugin>
     <version.jacoco.maven.plugin>0.8.12</version.jacoco.maven.plugin>
     <!-- Add for kie-maven-plugin -->
-    <version.plugin.plugin>3.15.1</version.plugin.plugin>
+    <version.maven.plugin.plugin>3.15.1</version.maven.plugin.plugin>
+    <version.sonar.maven.plugin>3.11.0.3922</version.sonar.maven.plugin>
 
     <!-- Jacoco plugin configuration-->
     <jacoco.exec.file>${project.root.dir}/target/jacoco.exec</jacoco.exec.file>
@@ -1545,7 +1543,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-plugin-plugin</artifactId>
-          <version>${version.plugin.plugin}</version>
+          <version>${version.maven.plugin.plugin}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -1684,7 +1682,7 @@
             <writeJunitReport>true</writeJunitReport>
           </configuration>
         </plugin>
-        <!-- Removable?
+        <!-- Removable? used in runtimes
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
@@ -1700,11 +1698,6 @@
             <autoVersionSubmodules>true</autoVersionSubmodules>
           </configuration>
         </plugin>
-        <!--
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-shade-plugin</artifactId>
-        </plugin> -->
 
         <!-- This plugin's configuration is used to store Eclipse m2e settings only.
              It has no influence on the Maven build itself. -->
@@ -1757,29 +1750,16 @@
           <artifactId>kie-maven-plugin</artifactId>
           <version>${project.version}</version>
         </plugin>
-        <!-- Removable?
-        <plugin>
-          <groupId>org.pitest</groupId>
-          <artifactId>pitest-maven</artifactId>
-          <version>1.2.0</version>
-        </plugin>
-        -->
         <!-- Incremental compiler-->
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
-          <version>1.5.0</version>
+          <version>${version.exec.maven.plugin}</version>
         </plugin>
-        <!-- Removable?
-        <plugin>
-          <groupId>org.wildfly.plugins</groupId>
-          <artifactId>wildfly-maven-plugin</artifactId>
-          <version>1.2.0.Final</version>
-        </plugin> -->
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
-          <version>3.6.0.1398</version>
+          <version>${version.sonar.maven.plugin}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
