@@ -157,18 +157,13 @@
          IMPORTANT: always explain the reason for overriding the plugin version! -->
     <!-- Surefire version 2.19.1 coming from parent is buggy and kie-osgi tests in droolsjbpm-integration are failing because of that. -->
     <version.surefire.plugin>2.22.1</version.surefire.plugin>
-    <!-- Add for kie-maven-plugin -->
-    <version.plugin.plugin>3.6.4</version.plugin.plugin>
+
     <version.plugin.annotations>3.7.1</version.plugin.annotations>
     <version.artifact.transfer>0.9.1</version.artifact.transfer>
     <version.shared.utils>3.3.4</version.shared.utils>
     <version.common.compress>1.26.1</version.common.compress>
     <version.common.exec>1.3</version.common.exec>
-    <!-- -->
-    <!-- Jacoco plugin configurations -->
-    <jacoco.haltOnFailure>false</jacoco.haltOnFailure>
-    <jacoco.line.coveredratio.minimum>0.9</jacoco.line.coveredratio.minimum>
-    <version.jacoco.plugin>0.8.11</version.jacoco.plugin>
+
     <!-- TODO: remove this once all repositories comply to the defined checkstyle rules -->
     <checkstyle.failOnViolation>false</checkstyle.failOnViolation>
     <checkstyle.logViolationsToConsole>false</checkstyle.logViolationsToConsole>
@@ -185,25 +180,18 @@
     <!-- property for productisation to know the last released version -->
     <latestReleasedVersionFromThisBranch>notYetReleased</latestReleasedVersionFromThisBranch>
 
-    <version.compiler.plugin>3.8.1</version.compiler.plugin>
-    <version.shade.plugin>3.3.0</version.shade.plugin>
-
     <version.net.byte-buddy>1.14.11</version.net.byte-buddy>
-
     <version.org.postgresql>42.7.2</version.org.postgresql>
-
     <version.ch.obermuhlner>2.0.1</version.ch.obermuhlner>
     <version.io.smallrye.jandex>3.1.6</version.io.smallrye.jandex>
     <version.org.eclipse.yasson>3.0.3</version.org.eclipse.yasson>
-
     <version.com.github.javaparser>3.25.8</version.com.github.javaparser>
-
     <version.com.google.guava>32.0.1-jre</version.com.google.guava>
 
     <!-- JaCoCo coverage data file location -->
     <!--suppress UnresolvedMavenProperty -->
     <project.root.dir>${maven.multiModuleProjectDirectory}</project.root.dir>
-    <jacoco.exec.file>${project.root.dir}/target/jacoco.exec</jacoco.exec.file>
+
 
     <version.org.awaitility>4.2.0</version.org.awaitility>
     <version.io.github.bonigarcia>5.1.1</version.io.github.bonigarcia>
@@ -212,10 +200,17 @@
     <version.jdk>${maven.compiler.release}</version.jdk>
     <version.maven>${version.org.apache.maven}</version.maven>
 
-    <!-- These are added as part of the migration from JBoss to Apache parent pom.xml. They may be extracted to a KIE parent bom. -->
-    <version.maven-checkstyle>3.3.0</version.maven-checkstyle>
-    <version.build.helper.maven.plugin>3.4.0</version.build.helper.maven.plugin>
-    <version.maven-javadoc-plugin.override>3.6.2</version.maven-javadoc-plugin.override>
+    <!-- Plugin versions -->
+    <version.build.helper.maven.plugin>3.6.0</version.build.helper.maven.plugin>
+    <version.io.smallrye.jandex-maven-plugin>${version.io.smallrye.jandex}</version.io.smallrye.jandex-maven-plugin>
+    <version.jacoco.maven.plugin>0.8.12</version.jacoco.maven.plugin>
+    <!-- Add for kie-maven-plugin -->
+    <version.plugin.plugin>3.15.1</version.plugin.plugin>
+
+    <!-- Jacoco plugin configuration-->
+    <jacoco.exec.file>${project.root.dir}/target/jacoco.exec</jacoco.exec.file>
+    <jacoco.haltOnFailure>false</jacoco.haltOnFailure>
+    <jacoco.line.coveredratio.minimum>0.9</jacoco.line.coveredratio.minimum>
   </properties>
 
   <dependencyManagement>
@@ -867,7 +862,7 @@
       <dependency>
         <groupId>org.jacoco</groupId>
         <artifactId>org.jacoco.agent</artifactId>
-        <version>${version.jacoco.plugin}</version>
+        <version>${version.jacoco.maven.plugin}</version>
         <classifier>runtime</classifier>
       </dependency>
 
@@ -1151,17 +1146,15 @@
     <pluginManagement>
       <plugins>
         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>${version.compiler.plugin}</version>
           <configuration>
             <encoding>UTF-8</encoding>
           </configuration>
         </plugin>
-
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
-          <version>3.0.0-M2</version>
           <dependencies>
             <dependency>
               <groupId>de.is24.maven.enforcer.rules</groupId>
@@ -1378,7 +1371,6 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>${version.maven-checkstyle}</version>
           <executions>
             <execution>
               <id>validate</id>
@@ -1437,6 +1429,7 @@
           </executions>
         </plugin>
         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
           <dependencies>
             <dependency>
@@ -1446,7 +1439,6 @@
             </dependency>
           </dependencies>
         </plugin>
-
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
@@ -1499,7 +1491,7 @@
         <plugin>
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
-          <version>${version.jacoco.plugin}</version>
+          <version>${version.jacoco.maven.plugin}</version>
         </plugin>
         <!-- Packaging -->
         <plugin>
@@ -1555,11 +1547,9 @@
           <artifactId>maven-plugin-plugin</artifactId>
           <version>${version.plugin.plugin}</version>
         </plugin>
-
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>${version.maven-source-plugin}</version>
           <executions>
             <execution>
               <id>attach-sources</id>
@@ -1607,7 +1597,7 @@
             </execution>
           </executions>
         </plugin>
-        <plugin>
+        <plugin> <!-- ? -->
           <groupId>org.commonjava.maven.plugins</groupId>
           <artifactId>project-sources-maven-plugin</artifactId>
           <version>0.3</version>
@@ -1645,12 +1635,12 @@
             </dependency>
           </dependencies>
         </plugin>
-        <plugin>
+        <plugin> <!-- ? -->
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>jaxb2-maven-plugin</artifactId>
           <version>2.2</version>
         </plugin>
-        <plugin>
+        <plugin> <!-- ? -->
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>xml-maven-plugin</artifactId>
           <version>1.0</version>
@@ -1658,7 +1648,7 @@
         <plugin>
           <groupId>io.smallrye</groupId>
           <artifactId>jandex-maven-plugin</artifactId>
-          <version>${version.io.smallrye.jandex}</version>
+          <version>${version.io.smallrye.jandex-maven-plugin}</version>
         </plugin>
         <plugin>
           <groupId>org.asciidoctor</groupId>
@@ -1689,26 +1679,18 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-assembly-plugin</artifactId>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-invoker-plugin</artifactId>
-          <version>3.2.1</version>
           <configuration>
             <writeJunitReport>true</writeJunitReport>
           </configuration>
         </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-deploy-plugin</artifactId>
-          <version>${version.maven-deploy-plugin}</version>
-        </plugin>
+        <!-- Removable?
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
           <version>2.10.0</version>
         </plugin>
+        -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
@@ -1718,10 +1700,11 @@
             <autoVersionSubmodules>true</autoVersionSubmodules>
           </configuration>
         </plugin>
+        <!--
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-        </plugin>
+        </plugin> -->
 
         <!-- This plugin's configuration is used to store Eclipse m2e settings only.
              It has no influence on the Maven build itself. -->
@@ -1774,22 +1757,25 @@
           <artifactId>kie-maven-plugin</artifactId>
           <version>${project.version}</version>
         </plugin>
+        <!-- Removable?
         <plugin>
           <groupId>org.pitest</groupId>
           <artifactId>pitest-maven</artifactId>
           <version>1.2.0</version>
         </plugin>
+        -->
         <!-- Incremental compiler-->
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
           <version>1.5.0</version>
         </plugin>
+        <!-- Removable?
         <plugin>
           <groupId>org.wildfly.plugins</groupId>
           <artifactId>wildfly-maven-plugin</artifactId>
           <version>1.2.0.Final</version>
-        </plugin>
+        </plugin> -->
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
@@ -1798,7 +1784,6 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>${version.maven-javadoc-plugin.override}</version>
           <configuration>
             <header><![CDATA[<b>${project.name} ${project.version}</b>]]></header>
             <footer><![CDATA[<b>${project.name} ${project.version}</b>]]></footer>
@@ -1815,9 +1800,11 @@
 
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
       </plugin>
       <plugin>
@@ -1857,7 +1844,6 @@
         <!-- Entry needed to create test-jars even for packaging types war, bundle, ... -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>${version.maven-jar-plugin}</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -2158,7 +2144,7 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>org.jacoco.ant</artifactId>
                 <!-- Keep the version in sync with jacoco-maven-plugin -->
-                <version>${version.jacoco.plugin}</version>
+                <version>${version.jacoco.maven.plugin}</version>
               </dependency>
             </dependencies>
           </plugin>
@@ -2230,7 +2216,7 @@
         <jacoco.excludes>*Lexer</jacoco.excludes>
 
         <!--suppress UnresolvedMavenProperty -->
-        <jacoco.agent.line>-javaagent:${settings.localRepository}/org/jacoco/org.jacoco.agent/${version.jacoco.plugin}/org.jacoco.agent-${version.jacoco.plugin}-runtime.jar=destfile=${jacoco.exec.file},append=true,excludes=${jacoco.excludes}</jacoco.agent.line>
+        <jacoco.agent.line>-javaagent:${settings.localRepository}/org/jacoco/org.jacoco.agent/${version.jacoco.maven.plugin}/org.jacoco.agent-${version.jacoco.maven.plugin}-runtime.jar=destfile=${jacoco.exec.file},append=true,excludes=${jacoco.excludes}</jacoco.agent.line>
         <surefire.argLine>
           -Dfile.encoding=${project.build.sourceEncoding}
           ${jacoco.agent.line}
@@ -2248,7 +2234,7 @@
                 <dependency>
                   <groupId>org.jacoco</groupId>
                   <artifactId>org.jacoco.agent</artifactId>
-                  <version>${version.jacoco.plugin}</version>
+                  <version>${version.jacoco.maven.plugin}</version>
                   <classifier>runtime</classifier>
                 </dependency>
               </dependencies>
