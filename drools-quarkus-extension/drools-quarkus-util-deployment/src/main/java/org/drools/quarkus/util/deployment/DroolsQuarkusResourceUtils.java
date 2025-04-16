@@ -80,7 +80,7 @@ public class DroolsQuarkusResourceUtils {
     // since quarkus-maven-plugin is later phase of maven-resources-plugin,
     // need to manually late-provide the resource in the expected location for quarkus:dev phase --so not: writeGeneratedFile( f, resourcePath );
     private static final GeneratedFileWriter.Builder generatedFileWriterBuilder = GeneratedFileWriter.builder("drools"
-            , "drools.codegen.resources.directory", "drools.codegen.sources.directory");
+            , "drools.codegen.resources.directory", "drools.codegen.sources.directory", "");
 
 
     public static DroolsModelBuildContext createDroolsBuildContext(Iterable<Path> paths, IndexView index) {

@@ -40,6 +40,12 @@ public class JavaCompilerFactory {
         return compiler;
     }
 
+    public static JavaCompiler loadCompiler( JavaConfiguration.CompilerType compilerType, JavaCompilerSettings javaCompilerSettings ) {
+        JavaCompiler compiler = createCompiler( compilerType ).orElseThrow( () -> new RuntimeException("Instance of " + compilerType + " compiler cannot be created!") );
+        compiler.setJavaCompilerSettings( javaCompilerSettings );
+        return compiler;
+    }
+
     private static JavaCompilerSettings createSettings( JavaCompiler compiler, String lngLevel ) {
         JavaCompilerSettings settings = compiler.createDefaultSettings();
         settings.setTargetVersion( lngLevel );

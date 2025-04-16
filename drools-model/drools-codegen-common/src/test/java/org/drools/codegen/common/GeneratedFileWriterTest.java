@@ -48,7 +48,7 @@ class GeneratedFileWriterTest {
         System.setProperty(resourcesDirectoryProperty, resourcesDirectory);
         System.setProperty(sourcesDirectoryProperty, sourcesDirectory);
         GeneratedFileWriter.Builder retrieved = GeneratedFileWriter.builder(finalPath, resourcesDirectoryProperty,
-                                                                            sourcesDirectoryProperty, bt);
+                                                                            sourcesDirectoryProperty, "", bt);
         assertEquals(bt.CLASSES_PATH.toString(), retrieved.classesDir);
         assertEquals(resourcesDirectory, retrieved.resourcePath);
         assertEquals(sourcesDirectory, retrieved.scaffoldedSourcesDir);
@@ -63,7 +63,7 @@ class GeneratedFileWriterTest {
         String sourcesDirectoryProperty = "source.property";
         String finalPath = "final";
         GeneratedFileWriter.Builder retrieved = GeneratedFileWriter.builder(finalPath, resourcesDirectoryProperty,
-                                                                            sourcesDirectoryProperty, bt);
+                                                                            sourcesDirectoryProperty, "", bt);
         assertEquals(bt.CLASSES_PATH.toString(), retrieved.classesDir);
         String expected = String.format("%s/%s", bt.GENERATED_RESOURCES_PATH.toString(), finalPath).replace("/",
                                                                                                             File.separator);
@@ -78,7 +78,7 @@ class GeneratedFileWriterTest {
         String relativePath = "relative/path";
         GeneratedFile generatedFile = new GeneratedFile(GeneratedFileType.of(category), relativePath, "");
         GeneratedFileWriter spiedWriter = spy(new GeneratedFileWriter(bt.CLASSES_PATH, bt.GENERATED_RESOURCES_PATH,
-                                                                      bt.GENERATED_SOURCES_PATH));
+                                                                      bt.GENERATED_SOURCES_PATH, bt.GENERATED_SOURCES_PATH));
         spiedWriter.write(generatedFile);
         Path location = switch (category) {
             case INTERNAL_RESOURCE, STATIC_HTTP_RESOURCE, COMPILED_CLASS -> bt.CLASSES_PATH;
