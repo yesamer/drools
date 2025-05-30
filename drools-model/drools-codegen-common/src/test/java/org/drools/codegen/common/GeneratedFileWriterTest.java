@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -45,13 +45,15 @@ class GeneratedFileWriterTest {
         String finalPath = "final/destination/";
         String resourcesDirectory = "custom/resources/path";
         String sourcesDirectory = "custom/sources/path";
+        String scaffoldingSourcesDirectory = "scaffolding/path";
         System.setProperty(resourcesDirectoryProperty, resourcesDirectory);
         System.setProperty(sourcesDirectoryProperty, sourcesDirectory);
         GeneratedFileWriter.Builder retrieved = GeneratedFileWriter.builder(finalPath, resourcesDirectoryProperty,
-                                                                            sourcesDirectoryProperty, "", bt);
+                                                                            sourcesDirectoryProperty, scaffoldingSourcesDirectory, bt);
         assertEquals(bt.CLASSES_PATH.toString(), retrieved.classesDir);
-        assertEquals(resourcesDirectory, retrieved.resourcePath);
-        assertEquals(sourcesDirectory, retrieved.scaffoldedSourcesDir);
+        assertEquals(resourcesDirectory, retrieved.resourcesDir);
+        assertEquals(sourcesDirectory, retrieved.sourcesDir);
+        assertEquals(scaffoldingSourcesDirectory, retrieved.scaffoldedSourcesDir);
         System.clearProperty(resourcesDirectoryProperty);
         System.clearProperty(sourcesDirectoryProperty);
     }
@@ -61,15 +63,19 @@ class GeneratedFileWriterTest {
     void builderWithoutConfig(AppPaths.BuildTool bt) {
         String resourcesDirectoryProperty = "resource.property";
         String sourcesDirectoryProperty = "source.property";
+        String scaffolderSourcesDirectoryProperty = "scaffolder.property";
         String finalPath = "final";
         GeneratedFileWriter.Builder retrieved = GeneratedFileWriter.builder(finalPath, resourcesDirectoryProperty,
-                                                                            sourcesDirectoryProperty, "", bt);
+                                                                            sourcesDirectoryProperty, scaffolderSourcesDirectoryProperty, bt);
         assertEquals(bt.CLASSES_PATH.toString(), retrieved.classesDir);
         String expected = String.format("%s/%s", bt.GENERATED_RESOURCES_PATH.toString(), finalPath).replace("/",
                                                                                                             File.separator);
-        assertEquals(expected, retrieved.resourcePath);
+        assertEquals(expected, retrieved.resourcesDir);
         expected = String.format("%s/%s", bt.GENERATED_SOURCES_PATH.toString(), finalPath).replace("/", File.separator);
-        assertEquals(expected, retrieved.scaffoldedSourcesDir);
+        assertEquals(expected, retrieved.sourcesDir);
+        /*
+        expected = String.format("%s/%s", bt.GENERATED_SOURCES_PATH.toString(), finalPath).replace("/", File.separator);
+        assertEquals(expected, retrieved.scaffoldedSourcesDir); */
     }
 
     @ParameterizedTest

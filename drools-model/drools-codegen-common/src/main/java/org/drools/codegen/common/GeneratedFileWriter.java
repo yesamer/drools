@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -71,21 +71,20 @@ public class GeneratedFileWriter {
     public static class Builder {
         //Default-access for testing purpose
         final String classesDir;
-        final String sourceDir;
-        final String resourcePath;
+        final String sourcesDir;
+        final String resourcesDir;
         final String scaffoldedSourcesDir;
 
         /**
-         *
          * @param classesDir usually target/classes/
-         * @param sourceDir usually target/generated-sources/kogito/
+         * @param sourcesDir usually target/generated-sources/kogito/
          * @param resourcesDir usually target/generated-resources/kogito/
          * @param scaffoldedSourcesDir usually src/main/java/
          */
-        private Builder(String classesDir, String sourceDir, String resourcesDir, String scaffoldedSourcesDir) {
+        private Builder(String classesDir, String sourcesDir, String resourcesDir, String scaffoldedSourcesDir) {
             this.classesDir = classesDir;
-            this.sourceDir = sourceDir;
-            this.resourcePath = resourcesDir;
+            this.sourcesDir = sourcesDir;
+            this.resourcesDir = resourcesDir;
             this.scaffoldedSourcesDir = scaffoldedSourcesDir;
         }
 
@@ -97,15 +96,15 @@ public class GeneratedFileWriter {
         public GeneratedFileWriter build(Path basePath) {
             return new GeneratedFileWriter(
                     basePath.resolve(classesDir),
-                    basePath.resolve(sourceDir),
-                    basePath.resolve(resourcePath),
+                    basePath.resolve(sourcesDir),
+                    basePath.resolve(resourcesDir),
                     basePath.resolve(scaffoldedSourcesDir));
         }
     }
 
     private final Path classesDir;
     private final Path sourcesDir;
-    private final Path resourcePath;
+    private final Path resourcesDir;
     private final Path scaffoldedSourcesDir;
     /**
      *
@@ -113,11 +112,18 @@ public class GeneratedFileWriter {
      * @param resourcePath usually target/generated-resources/kogito/
      * @param scaffoldedSourcesDir usually target/generated-sources/kogito/
      */
+
+    /**
+     * @param classesDir usually target/classes/
+     * @param sourcesDir usually target/generated-sources/kogito/
+     * @param resourcesDir usually target/generated-resources/kogito/
+     * @param scaffoldedSourcesDir usually src/main/java/
+     */
     //Default-access for testing purpose
-    GeneratedFileWriter(Path classesDir, Path sourcesDir, Path resourcePath, Path scaffoldedSourcesDir) {
+    GeneratedFileWriter(Path classesDir, Path sourcesDir, Path resourcesDir, Path scaffoldedSourcesDir) {
         this.classesDir = classesDir;
         this.sourcesDir = sourcesDir;
-        this.resourcePath = resourcePath;
+        this.resourcesDir = resourcesDir;
         this.scaffoldedSourcesDir = scaffoldedSourcesDir;
     }
 
@@ -157,8 +163,8 @@ public class GeneratedFileWriter {
         return sourcesDir;
     }
 
-    public Path getResourcePath() {
-        return resourcePath;
+    public Path getResourcesDir() {
+        return resourcesDir;
     }
 
     public Path getScaffoldedSourcesDir() {
