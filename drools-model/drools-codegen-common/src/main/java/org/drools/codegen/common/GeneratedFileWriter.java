@@ -107,13 +107,6 @@ public class GeneratedFileWriter {
     private final Path resourcesDir;
     private final Path scaffoldedSourcesDir;
     /**
-     *
-     * @param classesDir usually target/classes/
-     * @param resourcePath usually target/generated-resources/kogito/
-     * @param scaffoldedSourcesDir usually target/generated-sources/kogito/
-     */
-
-    /**
      * @param classesDir usually target/classes/
      * @param sourcesDir usually target/generated-sources/kogito/
      * @param resourcesDir usually target/generated-resources/kogito/
