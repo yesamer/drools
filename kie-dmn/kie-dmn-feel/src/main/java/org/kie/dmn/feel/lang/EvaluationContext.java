@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import org.kie.dmn.api.core.DMNRuntime;
+import org.kie.dmn.api.core.DMNVersion;
 import org.kie.dmn.api.feel.runtime.events.FEELEvent;
 import org.kie.dmn.api.feel.runtime.events.FEELEventListener;
 
@@ -52,7 +53,6 @@ public interface EvaluationContext {
 
     void notifyEvt(Supplier<FEELEvent> event);
 
-
     Collection<FEELEventListener> getListeners();
 
     void setRootObject(Object v);
@@ -60,4 +60,18 @@ public interface EvaluationContext {
     Object getRootObject();
 
     FEELDialect getFEELDialect();
+
+    DMNVersion getDMNVersion();
+
+    default boolean isLenient() {
+        return true; // Default to lenient mode
+    }
+
+    default void setPerformRuntimeTypeCheck(boolean performRuntimeTypeCheck) {
+        // Default implementation does nothing
+    }
+
+    default void enterFrame(int size) {
+        // Default implementation does nothing
+    }
 }

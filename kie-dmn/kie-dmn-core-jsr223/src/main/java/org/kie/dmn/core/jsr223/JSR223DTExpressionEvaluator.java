@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -30,13 +30,14 @@ import javax.script.ScriptException;
 import org.drools.model.functions.Function1;
 import org.kie.dmn.api.core.DMNResult;
 import org.kie.dmn.api.core.DMNRuntime;
+import org.kie.dmn.api.core.DMNVersion;
+import org.kie.dmn.api.core.EvaluatorResult;
+import org.kie.dmn.api.core.EvaluatorResult.ResultType;
 import org.kie.dmn.api.core.ast.DMNNode;
 import org.kie.dmn.api.core.event.DMNRuntimeEventManager;
 import org.kie.dmn.api.feel.runtime.events.FEELEvent;
 import org.kie.dmn.api.feel.runtime.events.FEELEventListener;
 import org.kie.dmn.core.api.DMNExpressionEvaluator;
-import org.kie.dmn.api.core.EvaluatorResult;
-import org.kie.dmn.api.core.EvaluatorResult.ResultType;
 import org.kie.dmn.core.ast.DMNDTExpressionEvaluator;
 import org.kie.dmn.core.ast.DMNDTExpressionEvaluator.EventResults;
 import org.kie.dmn.core.ast.EvaluatorResultImpl;
@@ -98,7 +99,7 @@ public class JSR223DTExpressionEvaluator implements DMNExpressionEvaluator {
                     results.addResult(rIndex, "", new Fn(rule.outLiteralExpr.getEval()));
                 }
             }
-            Object dtr = results.applyHitPolicy(new JSR223WrappingEC(contextValues, events), hitPolicy, decisionTableModel);
+            Object dtr = results.applyHitPolicy(new JSR223WrappingEC(contextValues, events, DMNVersion.getLatest()), hitPolicy, decisionTableModel);
 
             r = DMNDTExpressionEvaluator.processEvents( events, dmrem, result, node );
             return new EvaluatorResultImpl( dtr, r.hasErrors ? ResultType.FAILURE : ResultType.SUCCESS );
@@ -106,11 +107,11 @@ public class JSR223DTExpressionEvaluator implements DMNExpressionEvaluator {
             LOG.debug("failed evaluate", e);
             throw new RuntimeException(e);
         } finally {
-            DMNRuntimeEventManagerUtils.fireAfterEvaluateDecisionTable( dmrem, node.getName(), node.getName(), dt.getId(), result,
+            DMNRuntimeEventManagerUtils.fireAfterEvaluateDecisionTable(dmrem, node.getName(), node.getName(), dt.getId(), result,
                                                                         (r != null ? r.matchedRules : null),
                                                                         (r != null ? r.fired : null),
                                                                         (r != null ? r.matchedIds : null),
-                                                                        (r != null ? r.firedIds : null));
+                                                                        (r != null ? r.firedIds : null), dmrem.getCurrentEvaluatingDecisionName());
         }
     }
     
@@ -171,10 +172,12 @@ public class JSR223DTExpressionEvaluator implements DMNExpressionEvaluator {
         private final List<FEELEvent> events;
         // Defaulting FEELDialect to FEEL
         private final FEELDialect dialect = FEELDialect.FEEL;
+        private final DMNVersion dmnVersion;
 
-        public JSR223WrappingEC(Map<String, Object> values, List<FEELEvent> events) {
+        public JSR223WrappingEC(Map<String, Object> values, List<FEELEvent> events, DMNVersion dmnVersion) {
             this.values = Collections.unmodifiableMap(values);
             this.events = events;
+            this.dmnVersion = dmnVersion;
         }
 
         @Override
@@ -256,6 +259,12 @@ public class JSR223DTExpressionEvaluator implements DMNExpressionEvaluator {
         public FEELDialect getFEELDialect() {
             return dialect;
         }
+
+        @Override
+        public DMNVersion getDMNVersion() {
+            return dmnVersion;
+        }
+
     }
 
 }

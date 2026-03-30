@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,8 +20,14 @@ package org.kie.dmn.feel.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.OffsetTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.chrono.ChronoPeriod;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
@@ -36,6 +42,7 @@ import java.util.stream.Stream;
 
 import org.kie.dmn.api.core.FEELPropertyAccessible;
 import org.kie.dmn.feel.lang.FEELProperty;
+import org.kie.dmn.feel.runtime.custom.FormattedZonedDateTime;
 import org.kie.dmn.feel.runtime.Range;
 import org.kie.dmn.feel.runtime.Range.RangeBoundary;
 import org.kie.dmn.feel.runtime.impl.UndefinedValueComparable;
@@ -109,6 +116,9 @@ public class EvalHelper {
                 case "months":
                     result = ((ChronoPeriod) current).get(ChronoUnit.MONTHS) % 12;
                     break;
+                case "value":
+                    result = (((ChronoPeriod) current).get(ChronoUnit.YEARS) * 12) + ((ChronoPeriod) current).get(ChronoUnit.MONTHS);
+                    break;
                 default:
                     return PropertyValueResult.notDefined();
             }
@@ -125,6 +135,9 @@ public class EvalHelper {
                     break;
                 case "seconds":
                     result = ((Duration) current).getSeconds() % 60;
+                    break;
+                case "value":
+                    result = ((Duration) current).getSeconds();
                     break;
                 default:
                     return PropertyValueResult.notDefined();
@@ -166,6 +179,21 @@ public class EvalHelper {
                     }
                 case "weekday":
                     result = ((TemporalAccessor) current).get(ChronoField.DAY_OF_WEEK);
+                    break;
+                case "value":
+                    result = null;
+                    if (current instanceof LocalTime localTime) {
+                        result = BigDecimal.valueOf(localTime.toSecondOfDay());
+                    } else if (current instanceof OffsetTime offsetTime) {
+                        result = BigDecimal.valueOf(offsetTime.toLocalTime().toSecondOfDay());
+                    } else if (current instanceof LocalDate date) {
+                        ZonedDateTime dtAtMidnightUTC = date.atStartOfDay(ZoneOffset.UTC);
+                        result = BigDecimal.valueOf(dtAtMidnightUTC.toEpochSecond());
+                    } else if (current instanceof ZonedDateTime zonedDateTime) {
+                        result = BigDecimal.valueOf(zonedDateTime.toEpochSecond());
+                    } else if (current instanceof FormattedZonedDateTime formattedZonedDateTime) {
+                        result = BigDecimal.valueOf(formattedZonedDateTime.getZonedDateTime().toEpochSecond());
+                    }
                     break;
                 default:
                     return PropertyValueResult.notDefined();

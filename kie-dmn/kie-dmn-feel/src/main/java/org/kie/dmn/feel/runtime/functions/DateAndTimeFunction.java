@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -25,7 +25,6 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.TemporalAccessor;
@@ -36,6 +35,7 @@ import java.util.TimeZone;
 
 import org.kie.dmn.api.feel.runtime.events.FEELEvent.Severity;
 import org.kie.dmn.feel.runtime.FEELDateTimeFunction;
+import org.kie.dmn.feel.runtime.custom.FormattedZonedDateTime;
 import org.kie.dmn.feel.runtime.events.InvalidParametersEvent;
 
 import static org.kie.dmn.feel.util.NumberEvalHelper.coerceIntegerNumber;
@@ -62,8 +62,68 @@ public class DateAndTimeFunction
                                                                  .toFormatter();
     }
 
+
     private DateAndTimeFunction() {
         super(FEELConversionFunctionNames.DATE_AND_TIME);
+    }
+
+    static TemporalAccessor getValidDate(TemporalAccessor date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Parameter 'date' is missing or invalid.");
+        }
+        if (date instanceof LocalDate) {
+            return date;
+        }
+        // FEEL Spec Table 58 "date is a date or date time [...] creates a date time from the given date (ignoring any time component)" [that means ignoring any TZ from `date` parameter, too]
+        // I try to convert `date` to a LocalDate, if the query method returns null would signify conversion is not possible.
+        date = date.query(TemporalQueries.localDate());
+        if (date != null) {
+            return date;
+        }
+        throw new IllegalArgumentException("Parameter 'date' is missing or invalid.");
+    }
+
+    static TemporalAccessor getValidTime(TemporalAccessor time) {
+        if (time == null || !(time instanceof LocalTime || (time.query(TemporalQueries.localTime()) != null && time.query(TemporalQueries.zone()) != null))) {
+            throw new IllegalArgumentException("Parameter 'time' is missing or invalid.");
+        }
+        return time;
+    }
+
+    static ZoneId getValidTimeZone(String timeZone) {
+        if (timeZone == null || timeZone.isEmpty()) {
+            throw new IllegalArgumentException("Parameter 'timezone' is missing or invalid.");
+        }
+        try {
+            return ZoneId.of(timeZone);
+        } catch (DateTimeException ex) {
+            throw new IllegalArgumentException("Parameter 'timezone' is missing or invalid.");
+        }
+    }
+
+    static FEELFnResult<TemporalAccessor> generateDateTimeAndTimezone(TemporalAccessor date, TemporalAccessor time, ZoneId zoneId) {
+        try {
+            TemporalAccessor validatedDate = getValidDate(date);
+            TemporalAccessor validatedTime = getValidTime(time);
+            if (validatedDate instanceof LocalDate && validatedTime instanceof LocalTime) {
+                if (zoneId != null) {
+                    return FEELFnResult.ofResult(FormattedZonedDateTime.of((LocalDate) validatedDate, (LocalTime) validatedTime, zoneId));
+                } else {
+                    return FEELFnResult.ofResult(LocalDateTime.of((LocalDate) validatedDate, (LocalTime) validatedTime));
+                }
+            } else if (validatedDate instanceof LocalDate && time.query(TemporalQueries.localTime()) != null && time.query(TemporalQueries.zone()) != null) {
+                return FEELFnResult.ofResult(FormattedZonedDateTime.of((LocalDate) validatedDate, LocalTime.from(validatedTime), zoneId != null ? zoneId : ZoneId.from(validatedTime)));
+            }
+            return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "cannot invoke function for the input parameters"));
+        } catch (IllegalArgumentException e) {
+            return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "Invalid Input", e.getMessage()));
+        } catch (DateTimeException e) {
+            return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "input parameters date-parsing exception", e));
+        }
+    }
+
+    static FEELFnResult<TemporalAccessor> generateDateTimeAndTimezone(TemporalAccessor date, TemporalAccessor time) {
+        return generateDateTimeAndTimezone(date, time, null);
     }
 
     public FEELFnResult<TemporalAccessor> invoke(@ParameterName( "from" ) String val) {
@@ -76,46 +136,30 @@ public class DateAndTimeFunction
 
         try {
             if( val.contains( "T" ) ) {
-                return FEELFnResult.ofResult(FEEL_DATE_TIME.parseBest(val, ZonedDateTime::from, OffsetDateTime::from, LocalDateTime::from));
+                return FEELFnResult.ofResult(FEEL_DATE_TIME.parseBest(val, FormattedZonedDateTime::from, OffsetDateTime::from, LocalDateTime::from));
             } else {
-                LocalDate value = DateTimeFormatter.ISO_DATE.parse(val, LocalDate::from);
-                return FEELFnResult.ofResult( LocalDateTime.of(value, LocalTime.of(0, 0)));
+                TemporalAccessor parsed = DateTimeFormatter.ISO_DATE.parse(val);
+                LocalDate value = LocalDate.from(parsed);
+                ZoneId zoneId = parsed.query(TemporalQueries.zone());
+                if (zoneId == null) {
+                    ZoneOffset offset = parsed.query(TemporalQueries.offset());
+                    if (offset != null) {
+                        zoneId = ZoneId.ofOffset("UTC", offset);
+                    }
+                }
+                if (zoneId != null) {
+                    return FEELFnResult.ofResult(FormattedZonedDateTime.of(value, LocalTime.of(0, 0), zoneId));
+                } else {
+                    return FEELFnResult.ofResult(LocalDateTime.of(value, LocalTime.of(0, 0)));
+                }
             }
         } catch ( Exception e ) {
             return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "from", "date-parsing exception", e));
         }
     }
 
-    public FEELFnResult<TemporalAccessor> invoke(@ParameterName( "date" ) TemporalAccessor date, @ParameterName( "time" ) TemporalAccessor time) {
-        if ( date == null ) {
-            return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "date", "cannot be null"));
-        }
-        if ( !(date instanceof LocalDate) ) {
-            // FEEL Spec Table 58 "date is a date or date time [...] creates a date time from the given date (ignoring any time component)" [that means ignoring any TZ from `date` parameter, too]
-            // I try to convert `date` to a LocalDate, if the query method returns null would signify conversion is not possible.
-            date = date.query(TemporalQueries.localDate());
-
-            if (date == null) {
-                return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "date", "must be an instance of LocalDate (or must be possible to convert to a FEEL date using built-in date(date) )"));
-            }
-        }
-        if ( time == null ) {
-            return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "time", "cannot be null"));
-        }
-        if (!(time instanceof LocalTime || (time.query(TemporalQueries.localTime()) != null && time.query(TemporalQueries.zone()) != null))) {
-            return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "time", "must be an instance of LocalTime or (it must contain localTime AND zone)"));
-        }
-
-        try {
-            if( date instanceof LocalDate && time instanceof LocalTime ) {
-                return FEELFnResult.ofResult( LocalDateTime.of( (LocalDate) date, (LocalTime) time ) );
-            } else if (date instanceof LocalDate && (time.query(TemporalQueries.localTime()) != null && time.query(TemporalQueries.zone()) != null)) {
-                return FEELFnResult.ofResult(ZonedDateTime.of((LocalDate) date, LocalTime.from(time), ZoneId.from(time)));
-            }
-            return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "cannot invoke function for the input parameters"));
-        } catch (DateTimeException e) {
-            return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "input parameters date-parsing exception", e));
-        }
+    public FEELFnResult<TemporalAccessor> invoke(@ParameterName("date") TemporalAccessor date, @ParameterName("time") TemporalAccessor time) {
+        return generateDateTimeAndTimezone(date, time);
     }
 
     public FEELFnResult<TemporalAccessor> invoke(@ParameterName( "year" ) Number year, @ParameterName( "month" ) Number month, @ParameterName( "day" ) Number day,
@@ -167,13 +211,22 @@ public class DateAndTimeFunction
             int coercedHour = coerceIntegerNumber(hour).orElseThrow(() -> new NoSuchElementException("hour"));
             int coercedMinute = coerceIntegerNumber(minute).orElseThrow(() -> new NoSuchElementException("minute"));
             int coercedSecond = coerceIntegerNumber(second).orElseThrow(() -> new NoSuchElementException("second"));
-            return FEELFnResult.ofResult(ZonedDateTime.of(coercedYear, coercedMonth, coercedDay,
+            return FEELFnResult.ofResult(FormattedZonedDateTime.of(coercedYear, coercedMonth, coercedDay,
                     coercedHour, coercedMinute, coercedSecond, 0, TimeZone.getTimeZone(timezone).toZoneId()));
         } catch (NoSuchElementException e) { // thrown by Optional.orElseThrow()
             return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, e.getMessage(), "could not be coerced to Integer: either null or not a valid Number."));
         } catch (DateTimeException e) {
             return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "input parameters date-parsing exception", e));
         }
-
     }
+
+    public FEELFnResult<TemporalAccessor> invoke(@ParameterName("date") TemporalAccessor date, @ParameterName("time") TemporalAccessor time, @ParameterName("timeZone") String timeZone) {
+        try {
+            ZoneId zoneId = getValidTimeZone(timeZone);
+            return generateDateTimeAndTimezone(date, time, zoneId);
+        } catch (IllegalArgumentException e) {
+            return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "Invalid Input", e.getMessage()));
+        }
+    }
+
 }

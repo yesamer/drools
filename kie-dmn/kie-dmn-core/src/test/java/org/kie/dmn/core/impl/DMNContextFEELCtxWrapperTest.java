@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -26,6 +26,7 @@ import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 import org.kie.dmn.api.core.DMNRuntime;
+import org.kie.dmn.api.core.DMNVersion;
 import org.kie.dmn.api.feel.runtime.events.FEELEvent;
 import org.kie.dmn.api.feel.runtime.events.FEELEventListener;
 import org.kie.dmn.core.BaseDMNContextTest;
@@ -167,6 +168,12 @@ class DMNContextFEELCtxWrapperTest extends BaseDMNContextTest {
             // Defaulting FEELDialect to FEEL
             return FEELDialect.FEEL;
         }
+
+        @Override
+        public DMNVersion getDMNVersion() {
+            return DMNVersion.getLatest();
+        }
+
     }
 
 }

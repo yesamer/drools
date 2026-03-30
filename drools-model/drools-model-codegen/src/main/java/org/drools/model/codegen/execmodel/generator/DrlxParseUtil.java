@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -123,6 +123,10 @@ import static org.drools.util.ClassUtils.toRawClass;
 import static org.drools.util.MethodUtils.findMethod;
 
 public class DrlxParseUtil {
+
+    // Regardless of the configured language level, always parse with the highest level at this point,
+    // so compiler will report any incompatible syntax at the compilation phase.
+    public static final ParserConfiguration.LanguageLevel PARSABLE_LANGUAGE_LEVEL = ParserConfiguration.LanguageLevel.JAVA_21;
 
     public static final String THIS_PLACEHOLDER = "_this";
 
@@ -497,7 +501,7 @@ public class DrlxParseUtil {
 
     public static BlockStmt parseBlock(String ruleConsequenceAsBlock) {
         ParserConfiguration parserConfiguration = new ParserConfiguration();
-        parserConfiguration.setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_15);
+        parserConfiguration.setLanguageLevel(PARSABLE_LANGUAGE_LEVEL);
         com.github.javaparser.JavaParser javaParser = new com.github.javaparser.JavaParser(parserConfiguration);
 
         ParseResult<BlockStmt> blockStmtParseResult = javaParser.parseBlock(String.format("{%n%s%n}", ruleConsequenceAsBlock));

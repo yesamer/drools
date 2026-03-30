@@ -113,6 +113,7 @@ literal
     :	STRING_LITERAL  {	helper.emit($STRING_LITERAL, DroolsEditorType.STRING_CONST);	}
     |	DRL_STRING_LITERAL  {	helper.emit($DRL_STRING_LITERAL, DroolsEditorType.STRING_CONST);	}
     |	DECIMAL_LITERAL {	helper.emit($DECIMAL_LITERAL, DroolsEditorType.NUMERIC_CONST);	}
+    |   OCT_LITERAL     {	helper.emit($OCT_LITERAL, DroolsEditorType.NUMERIC_CONST);	}
     |	DRL_BIG_INTEGER_LITERAL {	helper.emit($DRL_BIG_INTEGER_LITERAL, DroolsEditorType.NUMERIC_CONST);	}
     |	HEX_LITERAL     {	helper.emit($HEX_LITERAL, DroolsEditorType.NUMERIC_CONST);	}
     |	FLOAT_LITERAL   {	helper.emit($FLOAT_LITERAL, DroolsEditorType.NUMERIC_CONST);	}
@@ -288,8 +289,6 @@ drlKeywords returns [Token token]
     | DRL_NO_LOOP
     | DRL_AUTO_FOCUS
     | DRL_LOCK_ON_ACTIVE
-    | DRL_REFRACT
-    | DRL_DIRECT
     | DRL_ACTIVATION_GROUP
     | DRL_RULEFLOW_GROUP
     | DRL_DATE_EFFECTIVE

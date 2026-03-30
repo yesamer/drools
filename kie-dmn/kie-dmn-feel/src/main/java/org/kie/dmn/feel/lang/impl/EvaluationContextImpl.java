@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import org.kie.dmn.api.core.DMNRuntime;
+import org.kie.dmn.api.core.DMNVersion;
 import org.kie.dmn.api.feel.runtime.events.FEELEvent;
 import org.kie.dmn.api.feel.runtime.events.FEELEventListener;
 import org.kie.dmn.feel.lang.EvaluationContext;
@@ -40,49 +41,62 @@ public class EvaluationContextImpl implements EvaluationContext {
     private static final Logger LOG = LoggerFactory.getLogger(EvaluationContextImpl.class);
 
     private final FEELEventListenersManager eventsManager;
-    private ArrayDeque<ExecutionFrame> stack;
+    private final ArrayDeque<ExecutionFrame> stack;
+        private final ClassLoader rootClassLoader;
+    private final FEELDialect feelDialect;
+    private final DMNVersion dmnVersion;
+    private final boolean isLenient;
+
     private DMNRuntime dmnRuntime;
     private boolean performRuntimeTypeCheck = false;
-    private ClassLoader rootClassLoader;
-    private final FEELDialect feelDialect;
 
-    private EvaluationContextImpl(ClassLoader cl, FEELEventListenersManager eventsManager, Deque<ExecutionFrame> stack, FEELDialect feelDialect) {
+    private EvaluationContextImpl(ClassLoader cl, FEELEventListenersManager eventsManager, Deque<ExecutionFrame> stack, FEELDialect feelDialect, DMNVersion dmnVersion, boolean isLenient) {
         this.eventsManager = eventsManager;
         this.rootClassLoader = cl;
         this.stack = new ArrayDeque<>(stack);
         this.feelDialect = feelDialect;
+        this.dmnVersion = dmnVersion;
+        this.isLenient = isLenient;
     }
 
+    public EvaluationContextImpl(ClassLoader cl, FEELEventListenersManager eventsManager, FEELDialect feelDialect, DMNVersion dmnVersion) {
+        this(cl, eventsManager, new ArrayDeque<>(), feelDialect, dmnVersion, true);
+        initializeFrames(32);
+    }
+
+    /**
+     * Creates a new {@code EvaluationContextImpl} instance aligned with the latest DMN specification
+     */
     public EvaluationContextImpl(ClassLoader cl, FEELEventListenersManager eventsManager, FEELDialect feelDialect) {
-        this(cl, eventsManager, 32, feelDialect);
+        this(cl, eventsManager, feelDialect, DMNVersion.getLatest());
     }
 
-    public EvaluationContextImpl(ClassLoader cl, FEELEventListenersManager eventsManager, int size, FEELDialect feelDialect) {
-        this(cl, eventsManager, new ArrayDeque<>(), feelDialect);
-        // we create a rootFrame to hold all the built in functions
-        push( RootExecutionFrame.INSTANCE );
-        // and then create a global frame to be the starting frame
-        // for function evaluation
-        ExecutionFrameImpl global = new ExecutionFrameImpl(RootExecutionFrame.INSTANCE, size);
-        push( global );
+    public EvaluationContextImpl(ClassLoader cl, FEELEventListenersManager eventsManager, int size, FEELDialect feelDialect, DMNVersion dmnVersion) {
+        this(cl, eventsManager, new ArrayDeque<>(), feelDialect, dmnVersion, true);
+        initializeFrames(size);
+    }
+
+    public EvaluationContextImpl(ClassLoader cl, FEELEventListenersManager eventsManager, int size, FEELDialect feelDialect, DMNVersion dmnVersion, boolean isLenient) {
+        this(cl, eventsManager, new ArrayDeque<>(), feelDialect, dmnVersion, isLenient);
+        initializeFrames(size);
     }
 
     @Deprecated
-    public EvaluationContextImpl(FEELEventListenersManager eventsManager, DMNRuntime dmnRuntime, FEELDialect feelDialect) {
-        this(dmnRuntime.getRootClassLoader(), eventsManager, feelDialect);
+    public EvaluationContextImpl(FEELEventListenersManager eventsManager, DMNRuntime dmnRuntime, FEELDialect feelDialect, DMNVersion dmnVersion) {
+        this(dmnRuntime.getRootClassLoader(), eventsManager, new ArrayDeque<>(), feelDialect, dmnVersion, true);
         this.dmnRuntime = dmnRuntime;
+        initializeFrames(32);
     }
 
-    private EvaluationContextImpl(FEELEventListenersManager eventsManager, FEELDialect feelDialect) {
-        this.eventsManager = eventsManager;
-        this.feelDialect = feelDialect;
+    private void initializeFrames(int size) {
+        push(RootExecutionFrame.INSTANCE);
+        push(new ExecutionFrameImpl(RootExecutionFrame.INSTANCE, size));
     }
+
 
     @Override
     public EvaluationContext current() {
-        EvaluationContextImpl ec = new EvaluationContextImpl(eventsManager, feelDialect);
-        ec.stack = stack.clone();
-        ec.rootClassLoader = this.rootClassLoader;
+        EvaluationContextImpl ec = new EvaluationContextImpl( this.rootClassLoader, this.eventsManager, this.stack.clone(), this.feelDialect, this.dmnVersion, this.isLenient);
         ec.dmnRuntime = this.dmnRuntime;
         ec.performRuntimeTypeCheck = this.performRuntimeTypeCheck;
         return ec;
@@ -237,5 +251,15 @@ public class EvaluationContextImpl implements EvaluationContext {
     @Override
     public FEELDialect getFEELDialect() {
         return feelDialect;
+    }
+
+    @Override
+    public DMNVersion getDMNVersion() {
+        return dmnVersion;
+    }
+
+    @Override
+    public boolean isLenient() {
+        return isLenient;
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -159,6 +159,19 @@ public class RuleUnitProviderImplTest {
         UpdateNoDSTestUnit unit = new UpdateNoDSTestUnit();
 
         try ( RuleUnitInstance<UpdateNoDSTestUnit> unitInstance = RuleUnitProvider.get().createRuleUnitInstance(unit) ) {
+
+            unit.getPersons().add(new Person("Mario", 17));
+
+            assertThat(unitInstance.fire()).isEqualTo(2);
+            assertThat(unit.getResults()).containsExactly("ok");
+        }
+    }
+
+    @Test
+    public void modify() {
+        ModifyTestUnit unit = new ModifyTestUnit();
+
+        try ( RuleUnitInstance<ModifyTestUnit> unitInstance = RuleUnitProvider.get().createRuleUnitInstance(unit) ) {
 
             unit.getPersons().add(new Person("Mario", 17));
 

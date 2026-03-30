@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.kie.dmn.api.core.DMNVersion;
 import org.kie.dmn.api.feel.runtime.events.FEELEventListener;
 import org.kie.dmn.feel.FEEL;
 import org.kie.dmn.feel.codegen.feel11.CompiledFEELExpression;
@@ -60,8 +61,9 @@ public class FEELImpl
     private final Collection<FEELFunction> customFunctions;
     private final boolean doCompile;
     private final FEELDialect feelDialect;
+    private final DMNVersion dmnVersion;
 
-    FEELImpl(ClassLoader cl, List<FEELProfile> profiles, FEELDialect feelDialect) {
+    FEELImpl(ClassLoader cl, List<FEELProfile> profiles, FEELDialect feelDialect, DMNVersion dmnVersion) {
         this.classLoader = cl;
         this.profiles = Collections.unmodifiableList(profiles);
         ExecutionFrameImpl frame = null;
@@ -85,6 +87,7 @@ public class FEELImpl
         customFrame = Optional.ofNullable(frame);
         customFunctions = Collections.unmodifiableCollection(functions.values());
         this.feelDialect = feelDialect;
+        this.dmnVersion = dmnVersion;
     }
 
     @Override
@@ -165,16 +168,33 @@ public class FEELImpl
     /**
      * Creates a new EvaluationContext using this FEEL instance classloader, and the supplied parameters listeners and inputVariables
      */
-    public EvaluationContextImpl newEvaluationContext(Collection<FEELEventListener> listeners, Map<String, Object> inputVariables) {
+    public EvaluationContextImpl newEvaluationContext(Collection<FEELEventListener> listeners, Map<String, Object> inputVariables ) {
         return newEvaluationContext(this.classLoader, listeners, inputVariables);
     }
 
     /**
      * Creates a new EvaluationContext with the supplied classloader, and the supplied parameters listeners and inputVariables
      */
-    public EvaluationContextImpl newEvaluationContext(ClassLoader cl, Collection<FEELEventListener> listeners, Map<String, Object> inputVariables) {
+    public EvaluationContextImpl newEvaluationContext(ClassLoader cl, Collection<FEELEventListener> listeners, Map<String, Object> inputVariables ) {
         FEELEventListenersManager eventsManager = getEventsManager(listeners);
-        EvaluationContextImpl ctx = new EvaluationContextImpl(cl, eventsManager, inputVariables.size(), feelDialect);
+        EvaluationContextImpl ctx = new EvaluationContextImpl(cl, eventsManager, inputVariables.size(), feelDialect, dmnVersion);
+        setupCustomFrame(ctx);
+        ctx.setValues(inputVariables);
+        return ctx;
+    }
+
+    /**
+     * Creates a new EvaluationContext with the supplied classloader, and the supplied parameters listeners and inputVariables and isLenient
+     */
+    public EvaluationContextImpl newEvaluationContext(Collection<FEELEventListener> listeners, Map<String, Object> inputVariables, boolean isLenient ) {
+        FEELEventListenersManager eventsManager = getEventsManager(listeners);
+        EvaluationContextImpl ctx = new EvaluationContextImpl(this.classLoader, eventsManager, inputVariables.size(), feelDialect, dmnVersion, isLenient);
+        setupCustomFrame(ctx);
+        ctx.setValues(inputVariables);
+        return ctx;
+    }
+
+    private void setupCustomFrame(EvaluationContextImpl ctx) {
         if (customFrame.isPresent()) {
             ExecutionFrameImpl globalFrame = (ExecutionFrameImpl) ctx.pop();
             ExecutionFrameImpl interveawedFrame = customFrame.get();
@@ -183,8 +203,6 @@ public class FEELImpl
             ctx.push(interveawedFrame);
             ctx.push(globalFrame);
         }
-        ctx.setValues(inputVariables);
-        return ctx;
     }
 
     @Override
@@ -227,5 +245,9 @@ public class FEELImpl
 
     public FEELDialect getFeelDialect() {
         return feelDialect;
+    }
+
+    public DMNVersion getDMNVersion() {
+        return dmnVersion;
     }
 }

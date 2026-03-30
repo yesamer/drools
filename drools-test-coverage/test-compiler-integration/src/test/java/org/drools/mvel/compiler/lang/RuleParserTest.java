@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -1747,25 +1747,6 @@ public class RuleParserTest {
         at = attrs.get("activation-group");
         assertThat(at.getName()).isEqualTo("activation-group");
         assertThat(at.getValue()).isEqualTo("my_activation_group");
-
-    }
-
-    @Test
-    public void testAttributeRefract() throws Exception {
-        final String source = "rule Test refract when Person() then end";
-
-        PackageDescr pkg = (PackageDescr) parse( "compilationUnit",
-                                                 source );
-
-        assertThat(parser.hasErrors()).as(parser.getErrors().toString()).isFalse();
-        RuleDescr rule = pkg.getRules().get(0);
-
-        assertThat(rule.getName()).isEqualTo("Test");
-        Map<String, AttributeDescr> attributes = rule.getAttributes();
-        assertThat(attributes.size()).isEqualTo(1);
-        AttributeDescr refract = attributes.get( "refract" );
-        assertThat(refract).isNotNull();
-        assertThat(refract.getValue()).isEqualTo("true");
 
     }
 

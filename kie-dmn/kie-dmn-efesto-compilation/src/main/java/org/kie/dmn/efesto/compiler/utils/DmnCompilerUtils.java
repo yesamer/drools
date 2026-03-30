@@ -22,6 +22,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
+
 import org.kie.api.builder.Message;
 import org.kie.api.io.Resource;
 import org.kie.dmn.api.core.DMNMessage;
@@ -42,12 +43,14 @@ import java.util.List;
 public class DmnCompilerUtils {
 
     static final List<String> CLEANABLE_PATTERNS = Arrays.asList("main/resources",
-                                                                 "main/java",
-                                                                 "test/resources",
-                                                                 "test/java",
-                                                                 "target/generated-resources",
-                                                                 "target/classes",
-                                                                 "target/test-classes");
+            "main/java",
+            "test/resources",
+            "test/java",
+            "target/generated-resources",
+            "target/classes",
+            "target/test-classes",
+            "build/resources/main",
+            "build/resources/test");
 
     private DmnCompilerUtils() {
         // avoid instantiation
@@ -57,16 +60,21 @@ public class DmnCompilerUtils {
         return dmnMessages.stream().anyMatch(dmnMessage -> dmnMessage.getLevel().equals(Message.Level.ERROR));
     }
 
-    public static EfestoCompilationOutput getDefaultEfestoCompilationOutput(String fileName, String modelName, String modelSource, DMNModel dmnModel) {
-        return new EfestoCallableOutputDMN(fileName, modelName, modelSource, dmnModel);
+    public static EfestoCompilationOutput getDefaultEfestoCompilationOutput(String fileName, String modelName, String modelSource, DMNModel dmnModel, List<DMNMessage> validationMessages) {
+        return new EfestoCallableOutputDMN(fileName, modelName, modelSource, dmnModel, validationMessages);
     }
 
-    public static EfestoCompilationOutput getDefaultEfestoCompilationOutput(ModelLocalUriId modelLocalUriId, String modelSource, DMNModel dmnModel) {
-        return new EfestoCallableOutputDMN(modelLocalUriId, modelSource, dmnModel);
+    public static EfestoCompilationOutput getDefaultEfestoCompilationOutput(ModelLocalUriId modelLocalUriId, String modelSource, DMNModel dmnModel, List<DMNMessage> validationMessages) {
+        return new EfestoCallableOutputDMN(modelLocalUriId, modelSource, dmnModel, validationMessages);
     }
 
-    public static DMNModel getDMNModel(String modelSource) {
+    public static DMNModel getDMNModel(String modelSource, String fileName) {
         Resource modelResource = ResourceFactory.newReaderResource(new StringReader(modelSource), "UTF-8");
+        modelResource.setSourcePath(fileName);
+        return getDMNModel(modelResource);
+    }
+
+    public static DMNModel getDMNModel(Resource modelResource) {
         DMNRuntime dmnRuntime = DMNRuntimeBuilder.fromDefaults().buildConfiguration()
                 .fromResources(Collections.singletonList(modelResource)).getOrElseThrow(RuntimeException::new);
         return dmnRuntime.getModels().get(0);
@@ -115,6 +123,7 @@ public class DmnCompilerUtils {
     /**
      * This method remove unwanted preceding paths from given <code>File</code>, and always returns a <b>/</b>-separated path,
      * without leading <b>/</b>
+     *
      * @param fileToClean
      * @return
      */
@@ -125,6 +134,7 @@ public class DmnCompilerUtils {
     /**
      * This method remove unwanted preceding paths from given <code>String</code>, and always returns a <b>/</b>-separated path,
      * without leading <b>/</b>
+     *
      * @param filenameToClean
      * @return
      */
@@ -144,8 +154,9 @@ public class DmnCompilerUtils {
 
     /**
      * This method remove unwanted preceding paths from given <code>String</code> and always returns a <b>/</b>-separated path,
+     *
      * @param filenameToClean
-     *  @param patternToClean
+     * @param patternToClean
      * @return
      */
     static String getCleanedFileNameForURIByPattern(String filenameToClean, String patternToClean) {

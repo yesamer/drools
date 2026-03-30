@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -29,12 +29,11 @@ import java.util.Queue;
 
 import javax.xml.namespace.QName;
 
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import org.antlr.v4.runtime.CommonToken;
 import org.kie.dmn.api.core.DMNContext;
 import org.kie.dmn.api.core.DMNMessage;
 import org.kie.dmn.api.core.DMNType;
+import org.kie.dmn.api.core.DMNVersion;
 import org.kie.dmn.api.feel.runtime.events.FEELEvent;
 import org.kie.dmn.api.feel.runtime.events.FEELEventListener;
 import org.kie.dmn.core.impl.BaseDMNTypeImpl;
@@ -64,6 +63,9 @@ import org.kie.dmn.model.api.ItemDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+
 
 public class DMNFEELHelper {
 
@@ -74,17 +76,19 @@ public class DMNFEELHelper {
     private final FEELEventsListenerImpl listener;
     private final List<FEELProfile> feelProfiles = new ArrayList<>();
     private final FEELDialect feelDialect;
+    private final DMNVersion dmnVersion;
 
-    public DMNFEELHelper(List<FEELProfile> feelProfiles, FEELDialect feelDialect) {
-        this(ClassLoaderUtil.findDefaultClassLoader(), feelProfiles, feelDialect);
+    public DMNFEELHelper(List<FEELProfile> feelProfiles, FEELDialect feelDialect, DMNVersion dmnVersion) {
+        this(ClassLoaderUtil.findDefaultClassLoader(), feelProfiles, feelDialect, dmnVersion);
     }
 
-    public DMNFEELHelper(ClassLoader classLoader, List<FEELProfile> feelProfiles, FEELDialect feelDialect) {
+    public DMNFEELHelper(ClassLoader classLoader, List<FEELProfile> feelProfiles, FEELDialect feelDialect, DMNVersion dmnVersion) {
         this.classLoader = classLoader;
         this.feelProfiles.addAll(feelProfiles);
         this.listener = new FEELEventsListenerImpl();
         this.feelDialect = feelDialect;
         this.feel = createFEELInstance();
+        this.dmnVersion = dmnVersion;
     }
 
     private FEEL createFEELInstance() {
@@ -101,6 +105,7 @@ public class DMNFEELHelper {
         return FEELBuilder.builder().withClassloader(classLoader)
                 .withProfiles(feelProfiles)
                 .withFEELDialect(feelDialect)
+                .withDMNVersion(dmnVersion)
                 .build();
     }
 
@@ -114,6 +119,7 @@ public class DMNFEELHelper {
         return FEELBuilder.builder().withClassloader(classLoader)
                 .withProfiles(feelProfiles)
                 .withFEELDialect(overridingFeelDialect)
+                .withDMNVersion(dmnVersion)
                 .build();
     }
 
@@ -122,7 +128,7 @@ public class DMNFEELHelper {
         FEELEventsListenerImpl listener = new FEELEventsListenerImpl();
         manager.addListener( listener );
         // Defaulting FEELDialect to FEEL
-        EvaluationContextImpl ctx = new EvaluationContextImpl(ClassLoaderUtil.findDefaultClassLoader(), manager, FEELDialect.FEEL);
+        EvaluationContextImpl ctx = new EvaluationContextImpl(ClassLoaderUtil.findDefaultClassLoader(), manager, FEELDialect.FEEL, DMNVersion.getLatest());
         try {
             ctx.enterFrame();
             if ( dmnContext != null ) {

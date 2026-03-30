@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -27,7 +27,6 @@ import org.kie.dmn.api.core.DMNRuntime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DMNTestUtil {
-
     private DMNTestUtil() {
         // No constructor for util class.
     }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -349,11 +349,7 @@ public class ParserHelper {
                validateText( text2Validate,
                              DroolsSoftKeywords.TIMER ) ||
                validateText( text2Validate,
-                             DroolsSoftKeywords.DURATION ) ||
-               validateText( text2Validate,
-                             DroolsSoftKeywords.REFRACT ) ||
-               validateText( text2Validate,
-                             DroolsSoftKeywords.DIRECT );
+                             DroolsSoftKeywords.DURATION );
     }
 
     public void reportError( RecognitionException ex ) {

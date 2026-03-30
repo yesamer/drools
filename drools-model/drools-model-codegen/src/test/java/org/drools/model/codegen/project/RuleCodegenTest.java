@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -36,6 +36,7 @@ import org.drools.drl.extensions.DecisionTableFactory;
 import org.drools.drl.extensions.DecisionTableProvider;
 import org.drools.io.FileSystemResource;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -126,6 +127,23 @@ public class RuleCodegenTest {
         Collection<GeneratedFile> generatedFiles = ruleCodegen.withHotReloadMode().generate();
         assertHasLegacyApiFiles(generatedFiles);
         int externalizedLambda = 5;
+        int legacyApiFiles = 2;
+        assertRules(2, 1, generatedFiles.size() - externalizedLambda - legacyApiFiles);
+    }
+
+    @DisabledIfSystemProperty(named = "drools.drl.antlr4.parser.enabled", matches = "true") // this test uses half-constraint which is not supported by DRL10
+    @ParameterizedTest
+    @MethodSource("org.drools.model.codegen.project.RuleCodegenTest#contextBuilders")
+    public void generateCepRegexRule(DroolsModelBuildContext.Builder contextBuilder) {
+        withLegacyApi(contextBuilder);
+
+        RuleCodegen ruleCodegen = getRuleCodegenFromFiles(
+                contextBuilder,
+                new File(RESOURCE_PATH + "/org/drools/simple/cep/cep-regex.drl"));
+
+        Collection<GeneratedFile> generatedFiles = ruleCodegen.withHotReloadMode().generate();
+        assertHasLegacyApiFiles(generatedFiles);
+        int externalizedLambda = 2;
         int legacyApiFiles = 2;
         assertRules(2, 1, generatedFiles.size() - externalizedLambda - legacyApiFiles);
     }
