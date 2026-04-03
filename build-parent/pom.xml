@@ -197,8 +197,6 @@
 
     <version.com.github.javaparser>3.27.0</version.com.github.javaparser>
 
-    <version.com.google.guava>33.4.8-jre</version.com.google.guava>
-
     <!-- JaCoCo coverage data file location -->
     <!--suppress UnresolvedMavenProperty -->
     <project.root.dir>${maven.multiModuleProjectDirectory}</project.root.dir>
@@ -781,10 +779,6 @@
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
           </exclusion>
-          <exclusion>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-          </exclusion>
         </exclusions>
       </dependency>
       <dependency>
@@ -1223,13 +1217,6 @@
         <artifactId>awaitility</artifactId>
         <version>${version.org.awaitility}</version>
         <scope>test</scope>
-      </dependency>
-
-      <!-- Used inside kie-ci -->
-      <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava</artifactId>
-        <version>${version.com.google.guava}</version>
       </dependency>
 
       <!-- Used by kie-pmml-trusty projects -->
@@ -1936,11 +1923,12 @@
           <artifactId>spotbugs-maven-plugin</artifactId>
           <version>${version.com.github.spotbugs-maven-plugin}</version>
           <dependencies>
+          <!--
             <dependency>
               <groupId>org.kie</groupId>
               <artifactId>kie-build-tools</artifactId>
               <version>${project.version}</version>
-            </dependency>
+            </dependency>-->
           </dependencies>
           <configuration>
             <maxRank>6</maxRank>
