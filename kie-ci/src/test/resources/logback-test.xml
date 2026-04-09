@@ -27,8 +27,8 @@
     </encoder>
   </appender>
 
-  <logger name="org.kie" level="warn"/>
-  <logger name="org.drools" level="warn"/>
+  <logger name="org.kie" level="error"/>
+  <logger name="org.drools" level="error"/>
 
   <root level="warn">
     <appender-ref ref="consoleAppender" />
