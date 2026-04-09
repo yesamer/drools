@@ -39,18 +39,16 @@
   </properties>
 
   <dependencies>
+
     <!-- Internal dependencies -->
-    <dependency>
-      <groupId>org.drools</groupId>
-      <artifactId>drools-wiring-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.drools</groupId>
-      <artifactId>drools-wiring-dynamic</artifactId>
-    </dependency>
-    <dependency>
+
+     <dependency>
       <groupId>org.drools</groupId>
       <artifactId>drools-base</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-compiler</artifactId>
     </dependency>
     <dependency>
       <groupId>org.drools</groupId>
@@ -58,7 +56,82 @@
     </dependency>
     <dependency>
       <groupId>org.drools</groupId>
-      <artifactId>drools-compiler</artifactId>
+      <artifactId>drools-util</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-serialization-protobuf</artifactId>
+    </dependency> 
+    <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-wiring-api</artifactId>
+    </dependency>
+    <!--
+    <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-wiring-dynamic</artifactId>
+    </dependency> -->
+
+    <dependency>
+      <groupId>org.kie</groupId>
+      <artifactId>kie-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.kie</groupId>
+      <artifactId>kie-internal</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.kie</groupId>
+      <artifactId>kie-util-maven-integration</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.kie</groupId>
+      <artifactId>kie-util-maven-support</artifactId>
+    </dependency>
+
+    <!-- External dependencies -->
+
+    <!-- 
+      Required for Maven 3.x embedder: Eclipse Sisu uses JSR-330 (javax.inject); not Java EE.
+      Maven 4.x introduces a new DI API and limits javax.inject to legacy compatibility. 
+    -->
+    <dependency>
+      <groupId>javax.inject</groupId>
+      <artifactId>javax.inject</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+    </dependency>
+    <!-- Double check -->
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-model</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-compat</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <!-- Test Dependencies --> 
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-drl-parser</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.drools</groupId>
@@ -67,64 +140,14 @@
     </dependency>
     <dependency>
       <groupId>org.drools</groupId>
-      <artifactId>drools-serialization-protobuf</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.drools</groupId>
       <artifactId>drools-xml-support</artifactId>
       <scope>test</scope>
     </dependency>
-    
     <dependency>
-      <groupId>org.kie</groupId>
-      <artifactId>kie-internal</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.kie</groupId>
-      <artifactId>kie-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.kie</groupId>
-      <artifactId>kie-util-maven-support</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.kie</groupId>
-      <artifactId>kie-util-maven-integration</artifactId>
-    </dependency>
-
-   <!-- External dependencies -->
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-compat</artifactId>
-    </dependency>
-
-    <!-- This dependency is necessary to workaround maven-core incompatibility with jakarta namespace -->
-    <dependency>
-      <groupId>javax.inject</groupId>
-      <artifactId>javax.inject</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-    </dependency>
-    <!-- Replacement for above excluded 'commons-logging:commons-logging' -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>jcl-over-slf4j</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-
-    <!-- test --> 
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>  
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
@@ -143,18 +166,9 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <scope>test</scope>
-    </dependency>    
-
-    <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
+
+  <!-- CHECK BELOW -->
 
   <build>
     <testResources>
