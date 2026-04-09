@@ -59,7 +59,7 @@ public class KieModuleDeploymentConfig {
         kieServicesLocal.set(ks);
     }
     
-    private final ThreadLocal<KieServices> kieServicesLocal = new ThreadLocal<>();
+    private static final ThreadLocal<KieServices> kieServicesLocal = new ThreadLocal<>();
     
     KieServices getKieServicesInstance() { 
         KieServices ks = kieServicesLocal.get();
