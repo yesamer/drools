@@ -20,7 +20,6 @@ package org.kie.api.builder.helper;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -30,7 +29,6 @@ import java.util.zip.ZipInputStream;
 
 import org.drools.core.impl.EnvironmentImpl;
 import org.drools.core.test.model.Cheese;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.kie.api.builder.KieModule;
 import org.kie.api.builder.model.KieBaseModel;
@@ -43,89 +41,90 @@ import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class KieModuleDeploymentHelperTest {
+class KieModuleDeploymentHelperTest {
 
-    protected static Logger logger = LoggerFactory.getLogger(KieModuleDeploymentHelperTest.class);
-    
-    private ZipInputStream zip;
-
-    @AfterEach
-    public void cleanUp() {
-        if (zip != null) {
-            try {
-                zip.close();
-            } catch (IOException e) {
-                // do nothing
-            }
-
-        }
-    }
+    static final Logger logger = LoggerFactory.getLogger(KieModuleDeploymentHelperTest.class);
 
     @Test
-    public void testSingleDeploymentHelper() throws Exception {
+    void testSingleDeploymentHelper() throws Exception {
         int numFiles = 0;
         int numDirs = 0;
         SingleKieModuleDeploymentHelper deploymentHelper = KieModuleDeploymentHelper.newSingleInstance();
 
-        List<String> resourceFilePaths = new ArrayList<String>();
+        List<String> resourceFilePaths = new ArrayList<>();
         resourceFilePaths.add("builder/test/");
+        // defaultKieBase/empty.drl, defaultKieBase/literal_rule.drl
         numFiles += 2;
         resourceFilePaths.add("builder/simple_query_test.drl");
+        // defaultKieBase/simple_query_test.drl
         ++numFiles;
 
-        List<Class<?>> kjarClasses = new ArrayList<Class<?>>();
+        List<Class<?>> kjarClasses = new ArrayList<>();
         kjarClasses.add(KieModuleDeploymentHelper.class);
-        numDirs += 5; // org.kie.api.builder.helper
         kjarClasses.add(EnvironmentImpl.class);
-        numDirs += 3; // (org.)drools.core.impl
-        kjarClasses.add( Cheese.class);
-        numDirs += 1; // (org.drools.)compiler
+        kjarClasses.add(Cheese.class);
+        // org/kie/api/builder/helper/KieModuleDeploymentHelper.class,
+        // org/drools/core/impl/EnvironmentImpl.class,
+        // org/drools/core/test/model/Cheese.class
         numFiles += 3;
 
         String groupId = "org.kie.api.builder";
         String artifactId = "test-kjar";
         String version = "0.1-SNAPSHOT";
-        deploymentHelper.createKieJarAndDeployToMaven(groupId, artifactId, version, 
+        deploymentHelper.createKieJarAndDeployToMaven(groupId, artifactId, version,
                 "defaultKieBase", "defaultKieSession",
                 resourceFilePaths, kjarClasses);
-        // pom.xml, pom.properties
+        // META-INF/maven/org.kie.api.builder/test-kjar/pom.xml,
+        // META-INF/maven/org.kie.api.builder/test-kjar/pom.properties
         numFiles += 2;
-        // kmodule.xml, kmodule.info, kbase.cache
-        numFiles +=3;
-        
-        // META-INF/maven/org.kie.api.builder/test-kjar
-        numDirs += 4;
-        // defaultKiebase, META-INF/defaultKieBase
-        numDirs += 2;
+        // META-INF/kmodule.xml, META-INF/kmodule.info, META-INF/defaultKieBase/kbase.cache
+        numFiles += 3;
 
-        File artifactFile = MavenRepository.getMavenRepository().resolveArtifact(groupId + ":" + artifactId + ":" + version).getFile();
-        zip = new ZipInputStream(new FileInputStream(artifactFile));
+        // META-INF/,
+        // META-INF/maven/,
+        // META-INF/maven/org.kie.api.builder/,
+        // META-INF/maven/org.kie.api.builder/test-kjar/,
+        // META-INF/defaultKieBase/,
+        // org/,
+        // org/drools/,
+        // org/drools/core/,
+        // org/drools/core/impl/,
+        // org/drools/core/test/,
+        // org/drools/core/test/model/,
+        // org/kie/,
+        // org/kie/api/,
+        // org/kie/api/builder/,
+        // org/kie/api/builder/helper/,
+        // defaultKieBase/
+        numDirs += 16;
 
-        Set<String> jarFiles = new HashSet<String>();
-        Set<String> jarDirs = new HashSet<String>();
-        ZipEntry ze = zip.getNextEntry();
-        logger.debug("Getting files from deployed jar: " );
-        while( ze != null ) { 
-            String fileName = ze.getName();
-            if( fileName.endsWith("drl")
-                    || fileName.endsWith("class")
-                    || fileName.endsWith("xml")
-                    || fileName.endsWith("info")
-                    || fileName.endsWith("properties")
-                    || fileName.endsWith("cache") ) { 
-                jarFiles.add(fileName);
-                logger.debug("> " + fileName);
-            } else { 
-                jarDirs.add(fileName);
-                logger.debug("] " + fileName);
+        File artifactFile = MavenRepository.getMavenRepository()
+                .resolveArtifact(groupId + ":" + artifactId + ":" + version)
+                .getFile();
+
+        try (ZipInputStream zip = new ZipInputStream(new FileInputStream(artifactFile))) {
+            Set<String> jarFiles = new HashSet<>();
+            Set<String> jarDirs = new HashSet<>();
+            ZipEntry ze = zip.getNextEntry();
+            logger.debug("Getting files from deployed jar: ");
+            while (ze != null) {
+                String fileName = ze.getName();
+                if (ze.isDirectory()) {
+                    jarDirs.add(fileName);
+                    logger.debug("] {}", fileName);
+                } else {
+                    jarFiles.add(fileName);
+                    logger.debug("> {}", fileName);
+                }
+                ze = zip.getNextEntry();
             }
-            ze = zip.getNextEntry();
+            assertThat(jarFiles.size()).as("Num files in kjar").isEqualTo(numFiles);
+            assertThat(jarDirs.size()).as("Num directories in kjar").isEqualTo(numDirs);
         }
-        assertThat(jarFiles.size()).as("Num files in kjar").isEqualTo(numFiles);
     }
 
     @Test
-    public void testFluentDeploymentHelper() throws Exception {
+    void testFluentDeploymentHelper() throws Exception {
         int numFiles = 0;
         int numDirs = 0;
         
@@ -142,63 +141,200 @@ public class KieModuleDeploymentHelperTest {
                 .addClass(KieModuleDeploymentHelperTest.class)
                 .addClass(KieModule.class)
                 .addClass(Cheese.class);
-        // class dirs
-        numDirs += 5; // org.kie.api.builder.helper
-        numDirs += 2; // (org.)drools.compiler
-        
-        // pom.xml, pom.properties
+        // META-INF/maven/org.kie.api.builder.fluent/test-kjar/pom.properties,
+        // META-INF/maven/org.kie.api.builder.fluent/test-kjar/pom.xml,
+        // META-INF/kmodule.info
         numFiles += 3;
-        // kmodule.xml, kmodule.info
+        // META-INF/kmodule.xml, defaultKieBase/empty.drl
         numFiles += 2;
-        // kbase.cache x 2
+        // META-INF/otherKieBase/kbase.cache, META-INF/defaultKieBase/kbase.cache
         numFiles += 2;
-        // drl files
+        // defaultKieBase/simple_query_test.drl, defaultKieBase/literal_rule.drl
         numFiles += 2;
-        // WorkDefinitions
+        // defaultKieBase/WorkDefinitions.conf
         ++numFiles;
-        // classes
+        // org/drools/core/test/model/Cheese.class,
+        // org/kie/api/builder/KieModule.class,
+        // org/kie/api/builder/helper/KieModuleDeploymentHelperTest.class
         numFiles += 3;
-        
-        // META-INF/maven/org.kie.api.builder/test-kjar
-        numDirs += 4;
-        // defaultKiebase, META-INF/defaultKieBase
-        numDirs += 2;
-        
-        KieBaseModel kbaseModel = deploymentHelper.getKieModuleModel().newKieBaseModel("otherKieBase");
-        kbaseModel.setEqualsBehavior(EqualityBehaviorOption.EQUALITY).setEventProcessingMode(EventProcessingOption.STREAM);
-        kbaseModel.newKieSessionModel("otherKieSession").setClockType(ClockTypeOption.REALTIME);
-        // META-INF/otherKieBase
-        ++numDirs;
 
-        deploymentHelper.getKieModuleModel().getKieBaseModels().get("defaultKieBase").newKieSessionModel("secondKieSession");
+        KieBaseModel kbaseModel = deploymentHelper.getKieModuleModel().newKieBaseModel("otherKieBase");
+        kbaseModel.setEqualsBehavior(EqualityBehaviorOption.EQUALITY)
+                .setEventProcessingMode(EventProcessingOption.STREAM);
+        kbaseModel.newKieSessionModel("otherKieSession")
+                .setClockType(ClockTypeOption.REALTIME);
+        // META-INF/,
+        // META-INF/maven/,
+        // META-INF/maven/org.kie.api.builder.fluent/,
+        // META-INF/maven/org.kie.api.builder.fluent/test-kjar/,
+        // META-INF/kmodule.xml is a file, not a directory
+        // META-INF/otherKieBase/,
+        // META-INF/defaultKieBase/,
+        // org/,
+        // org/drools/,
+        // org/drools/core/,
+        // org/drools/core/test/,
+        // org/drools/core/test/model/,
+        // org/kie/,
+        // org/kie/api/,
+        // org/kie/api/builder/,
+        // org/kie/api/builder/helper/,
+        // defaultKieBase/
+        numDirs += 16;
+
+        deploymentHelper.getKieModuleModel()
+                .getKieBaseModels()
+                .get("defaultKieBase")
+                .newKieSessionModel("secondKieSession");
 
         deploymentHelper.createKieJarAndDeployToMaven();
 
-        File artifactFile = MavenRepository.getMavenRepository().resolveArtifact(groupId + ":" + artifactId + ":" + version).getFile();
-        zip = new ZipInputStream(new FileInputStream(artifactFile));
+        File artifactFile = MavenRepository.getMavenRepository()
+                .resolveArtifact(groupId + ":" + artifactId + ":" + version)
+                .getFile();
 
-        Set<String> jarFiles = new HashSet<String>();
-        Set<String> jarDirs = new HashSet<String>();
-        ZipEntry ze = zip.getNextEntry();
-        logger.debug("Getting files form deployed jar: ");
-        while( ze != null ) { 
-            String fileName = ze.getName();
-            if( fileName.endsWith("drl")
-                    || fileName.endsWith("class")
-                    || fileName.endsWith("tst")
-                    || fileName.endsWith("conf")
-                    || fileName.endsWith("xml")
-                    || fileName.endsWith("info")
-                    || fileName.endsWith("properties")
-                    || fileName.endsWith("cache") ) { 
-                jarFiles.add(fileName);
-                logger.debug("> " + fileName);
-            } else { 
-                jarDirs.add(fileName);
-                logger.debug("] " + fileName);
+        try (ZipInputStream zip = new ZipInputStream(new FileInputStream(artifactFile))) {
+            Set<String> jarFiles = new HashSet<>();
+            Set<String> jarDirs = new HashSet<>();
+            ZipEntry ze = zip.getNextEntry();
+            logger.debug("Getting files from deployed jar: ");
+            while (ze != null) {
+                String fileName = ze.getName();
+                if (ze.isDirectory()) {
+                    jarDirs.add(fileName);
+                    logger.debug("] {}", fileName);
+                } else {
+                    jarFiles.add(fileName);
+                    logger.debug("> {}", fileName);
+                }
+                ze = zip.getNextEntry();
             }
-            ze = zip.getNextEntry();
+            assertThat(jarFiles.size()).as("Num files in kjar").isEqualTo(numFiles);
+            assertThat(jarDirs.size()).as("Num directories in kjar").isEqualTo(numDirs);
         }
-        assertThat(jarFiles.size()).as("Num files in kjar").isEqualTo(numFiles);
+    }
+
+    @Test
+    void testFluentDeploymentHelperWithoutClasses() {
+        FluentKieModuleDeploymentHelper deploymentHelper = KieModuleDeploymentHelper.newFluentInstance();
+
+        String groupId = "org.kie.api.builder.noclasses";
+        String artifactId = "test-kjar-no-classes";
+        String version = "0.1-SNAPSHOT";
+
+        deploymentHelper.setGroupId(groupId)
+                .setArtifactId(artifactId)
+                .setVersion(version)
+                .addResourceFilePath("builder/simple_query_test.drl");
+
+        KieModule kieModule = deploymentHelper.createKieJar();
+
+        assertThat(kieModule).isNotNull();
+        assertThat(kieModule.getReleaseId().getGroupId()).isEqualTo(groupId);
+        assertThat(kieModule.getReleaseId().getArtifactId()).isEqualTo(artifactId);
+    }
+
+    @Test
+    void testSingleDeploymentHelperCreateKieJarOnly() {
+        SingleKieModuleDeploymentHelper deploymentHelper = KieModuleDeploymentHelper.newSingleInstance();
+
+        List<String> resourceFilePaths = new ArrayList<String>();
+        resourceFilePaths.add("builder/simple_query_test.drl");
+
+        String groupId = "org.kie.api.builder.nomavendeploy";
+        String artifactId = "test-kjar-no-deploy";
+        String version = "0.1-SNAPSHOT";
+
+        KieModule kieModule = deploymentHelper.createKieJar(groupId, artifactId, version,
+                "testKieBase", "testKieSession",
+                resourceFilePaths);
+
+        assertThat(kieModule).isNotNull();
+        assertThat(kieModule.getReleaseId()).isNotNull();
+        assertThat(kieModule.getReleaseId().getGroupId()).isEqualTo(groupId);
+        assertThat(kieModule.getReleaseId().getArtifactId()).isEqualTo(artifactId);
+        assertThat(kieModule.getReleaseId().getVersion()).isEqualTo(version);
+    }
+
+    @Test
+    void testFluentDeploymentHelperKieModuleModelAccess() {
+        FluentKieModuleDeploymentHelper deploymentHelper = KieModuleDeploymentHelper.newFluentInstance();
+
+        deploymentHelper.setGroupId("org.kie.test")
+                .setArtifactId("test-kmodule-model")
+                .setVersion("1.0.0")
+                .addResourceFilePath("builder/simple_query_test.drl");
+
+        assertThat(deploymentHelper.getKieModuleModel()).isNotNull();
+        assertThat(deploymentHelper.getKieModuleModel().getKieBaseModels()).isNotEmpty();
+        assertThat(deploymentHelper.getKieModuleModel().getKieBaseModels()).containsKey("defaultKieBase");
+    }
+
+    @Test
+    void testFluentDeploymentHelperMultipleResourcePaths() throws Exception {
+        FluentKieModuleDeploymentHelper deploymentHelper = KieModuleDeploymentHelper.newFluentInstance();
+
+        String groupId = "org.kie.api.builder.multiresource";
+        String artifactId = "test-kjar-multi-resource";
+        String version = "0.1-SNAPSHOT";
+
+        deploymentHelper.setGroupId(groupId)
+                .setArtifactId(artifactId)
+                .setVersion(version)
+                .addResourceFilePath("builder/test/")
+                .addResourceFilePath("builder/simple_query_test.drl")
+                .addResourceFilePath("/META-INF/WorkDefinitions.conf");
+
+        KieModule kieModule = deploymentHelper.createKieJar();
+
+        assertThat(kieModule).isNotNull();
+        assertThat(kieModule.getReleaseId().getArtifactId()).isEqualTo(artifactId);
+
+        deploymentHelper.createKieJarAndDeployToMaven();
+
+        File artifactFile = MavenRepository.getMavenRepository()
+                .resolveArtifact(groupId + ":" + artifactId + ":" + version)
+                .getFile();
+
+        try (ZipInputStream zip = new ZipInputStream(new FileInputStream(artifactFile))) {
+            Set<String> jarFiles = new HashSet<String>();
+            ZipEntry ze = zip.getNextEntry();
+            while (ze != null) {
+                if (!ze.isDirectory()) {
+                    jarFiles.add(ze.getName());
+                }
+                ze = zip.getNextEntry();
+            }
+
+            assertThat(jarFiles).contains("defaultKieBase/empty.drl");
+            assertThat(jarFiles).contains("defaultKieBase/literal_rule.drl");
+            assertThat(jarFiles).contains("defaultKieBase/simple_query_test.drl");
+            assertThat(jarFiles).contains("defaultKieBase/WorkDefinitions.conf");
+        }
+    }
+
+    @Test
+    void testSingleDeploymentHelperWithMultipleClasses() {
+        SingleKieModuleDeploymentHelper deploymentHelper = KieModuleDeploymentHelper.newSingleInstance();
+
+        List<String> resourceFilePaths = new ArrayList<String>();
+        resourceFilePaths.add("builder/simple_query_test.drl");
+
+        List<Class<?>> kjarClasses = new ArrayList<Class<?>>();
+        kjarClasses.add(KieModuleDeploymentHelper.class);
+        kjarClasses.add(EnvironmentImpl.class);
+        kjarClasses.add(Cheese.class);
+        kjarClasses.add(KieModule.class);
+
+        String groupId = "org.kie.api.builder.multiclass";
+        String artifactId = "test-kjar-multi-class";
+        String version = "0.1-SNAPSHOT";
+
+        KieModule kieModule = deploymentHelper.createKieJar(groupId, artifactId, version,
+                "multiClassKieBase", "multiClassKieSession",
+                resourceFilePaths, kjarClasses);
+
+        assertThat(kieModule).isNotNull();
+        assertThat(kieModule.getReleaseId().getGroupId()).isEqualTo(groupId);
     }
 }
