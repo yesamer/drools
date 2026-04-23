@@ -66,11 +66,6 @@
       <groupId>org.drools</groupId>
       <artifactId>drools-wiring-api</artifactId>
     </dependency>
-    <!--
-    <dependency>
-      <groupId>org.drools</groupId>
-      <artifactId>drools-wiring-dynamic</artifactId>
-    </dependency> -->
 
     <dependency>
       <groupId>org.kie</groupId>
@@ -90,27 +85,9 @@
     </dependency>
 
     <!-- External dependencies -->
-
-    <!-- 
-      Required for Maven 3.x embedder: Eclipse Sisu uses JSR-330 (javax.inject); not Java EE.
-      Maven 4.x introduces a new DI API and limits javax.inject to legacy compatibility. 
-    -->
-    <dependency>
-      <groupId>javax.inject</groupId>
-      <artifactId>javax.inject</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-core</artifactId>
-    </dependency>
-    <!-- Double check -->
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-model</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-compat</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
