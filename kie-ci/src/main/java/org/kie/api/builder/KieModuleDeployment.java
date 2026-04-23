@@ -99,5 +99,3 @@ public final class KieModuleDeployment {
         return new KieModuleDeploymentHelperImpl();
     }
 }
-
-// Made with Bob
