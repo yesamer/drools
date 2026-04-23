@@ -69,48 +69,71 @@ public class KieModuleDeploymentConfig {
         return ks;        
     }
     
-    
-    /**
-     * Getter/Setter's
-     */
+    // ========== Setters ==========
     
     void setGroupId(String groupId) { 
         this.groupId = groupId;
+        this.releaseId = null; // Invalidate cached ReleaseId
     }
     
     void setArtifactId(String artifactId) { 
         this.artifactId = artifactId;
+        this.releaseId = null; // Invalidate cached ReleaseId
     }
     
     void setVersion(String version) { 
         this.version = version;
+        this.releaseId = null; // Invalidate cached ReleaseId
     }
     
+    void setKbaseName(String kbaseName) {
+        this.kbaseName = kbaseName;
+        this.kieModuleModel = null; // Invalidate cached model
+    }
+    
+    void setKsessionName(String ksessionName) {
+        this.ksessionName = ksessionName;
+        this.kieModuleModel = null; // Invalidate cached model
+    }
+    
+    // ========== Getters with Lazy Initialization ==========
+    
+    /**
+     * Gets the ReleaseId, creating it lazily from individual Maven coordinates if needed.
+     * 
+     * @return the ReleaseId
+     * @throws IllegalStateException if Maven coordinates are not set
+     */
     ReleaseId getReleaseId() {
         if (releaseId == null) {
+            Objects.requireNonNull(groupId, "groupId must be set before creating ReleaseId");
+            Objects.requireNonNull(artifactId, "artifactId must be set before creating ReleaseId");
+            Objects.requireNonNull(version, "version must be set before creating ReleaseId");
             releaseId = new ReleaseIdImpl(groupId, artifactId, version);
         }
         return releaseId;
     }
 
-    void setKbaseName(String kbaseName) {
-        this.kbaseName = kbaseName;
-    }
-    
+    /**
+     * Gets the KieBase name, returning the default if not explicitly set.
+     * 
+     * @return the KieBase name (never null)
+     */
     String getKbaseName() {
-        if( kbaseName == null ) { 
-            this.kbaseName = "defaultKieBase";
+        if (kbaseName == null) { 
+            kbaseName = DEFAULT_KBASE_NAME;
         }
         return kbaseName;
     }
     
-    void setKsessionName(String ksessionName) {
-        this.ksessionName = ksessionName;
-    }
-    
+    /**
+     * Gets the KieSession name, returning the default if not explicitly set.
+     * 
+     * @return the KieSession name (never null)
+     */
     String getKsessionName() {
-        if( ksessionName == null ) { 
-            this.ksessionName = "defaultKieSession";
+        if (ksessionName == null) { 
+            ksessionName = DEFAULT_KSESSION_NAME;
         }
         return ksessionName;
     }
