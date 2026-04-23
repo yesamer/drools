@@ -63,9 +63,9 @@ class KieModuleDeploymentConfig {
     final List<Class<?>> classes = new ArrayList<>();
     final List<String> dependencies = new ArrayList<>();
     
-    List<String> resourceFilePaths = new ArrayList<>();
-    List<Class<?>> classes = new ArrayList<>();
-    List<String> dependencies = new ArrayList<>();
+    // Cached instances
+    private KieModuleModel kieModuleModel;
+    String pomText; // Package-private for access by implementation
     
     private KieModuleModel kproj = null;
     String pomText;
@@ -159,36 +159,61 @@ class KieModuleDeploymentConfig {
         return ksessionName;
     }
     
+    // ========== Validation ==========
     
     /**
-     * Other methods
+     * Validates that all required configuration is present.
+     * <p>
+     * Checks that either all individual Maven coordinates (groupId, artifactId, version)
+     * are set, or that a ReleaseId has been provided.
+     * </p>
+     * 
+     * @throws IllegalStateException if required configuration is missing
      */
-    
     void checkComplete() {
+        // If all coordinates are set or releaseId is set, configuration is complete
         if ((groupId != null && artifactId != null && version != null) || releaseId != null) {
             return;
-        } else if (releaseId == null) {
-            if (groupId == null) {
-                throw new IllegalStateException("No groupId has been set yet.");
-            } else if (artifactId == null) {
-                throw new IllegalStateException("No artifactId has been set yet.");
-            } else if (version == null) {
-                throw new IllegalStateException("No version has been set yet.");
-            } else if (groupId.equals(artifactId) && artifactId.equals(version) && version == null) {
-                throw new IllegalStateException("None of groupId, artifactId, version or releaseId have been set.");
-            }
+        }
+        
+        // Otherwise, identify which field is missing
+        if (groupId == null) {
+            throw new IllegalStateException("No groupId has been set yet.");
+        }
+        if (artifactId == null) {
+            throw new IllegalStateException("No artifactId has been set yet.");
+        }
+        if (version == null) {
+            throw new IllegalStateException("No version has been set yet.");
         }
     }
 
+    // ========== KieModuleModel Creation ==========
+    
+    /**
+     * Gets or creates the KieModuleModel with default KieBase and KieSession.
+     * <p>
+     * The model is created lazily on first access and cached for subsequent calls.
+     * It includes a default KieBase and KieSession with the configured names.
+     * </p>
+     * 
+     * @return the KieModuleModel (never null)
+     */
     KieModuleModel getKieProject() {
-        if (kproj != null) {
-            return kproj;
+        if (kieModuleModel != null) {
+            return kieModuleModel;
         }
-        kproj = getKieServicesInstance().newKieModuleModel();
+        
+        kieModuleModel = getKieServicesInstance().newKieModuleModel();
 
-        KieBaseModel kieBaseModel = kproj.newKieBaseModel(getKbaseName()).setDefault(true);
-        kieBaseModel.newKieSessionModel(getKsessionName()).setDefault(true);
+        KieBaseModel kieBaseModel = kieModuleModel
+            .newKieBaseModel(getKbaseName())
+            .setDefault(true);
+        
+        kieBaseModel
+            .newKieSessionModel(getKsessionName())
+            .setDefault(true);
 
-        return kproj;
+        return kieModuleModel;
     }
 }
