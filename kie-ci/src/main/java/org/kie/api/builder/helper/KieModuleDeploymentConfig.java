@@ -67,25 +67,46 @@ class KieModuleDeploymentConfig {
     private KieModuleModel kieModuleModel;
     String pomText; // Package-private for access by implementation
     
-    private KieModuleModel kproj = null;
-    String pomText;
+    // Thread-local KieServices instance
+    private static final ThreadLocal<KieServices> kieServicesLocal = new ThreadLocal<>();
 
-    public KieModuleDeploymentConfig() { 
+    /**
+     * Creates a new configuration instance and initializes the thread-local KieServices.
+     */
+    KieModuleDeploymentConfig() { 
+        initializeKieServices();
+    }
+    
+    /**
+     * Initializes the thread-local KieServices with a custom repository implementation.
+     * <p>
+     * The custom repository prevents storing artifacts on deploy to trigger loading from Maven repo.
+     * </p>
+     */
+    private void initializeKieServices() {
         KieServices ks = new KieServicesImpl() {
+            @Override
             public KieRepository getRepository() {
-                // override repository to not store the artifact on deploy to trigger load from maven repo
+                // Override repository to not store the artifact on deploy to trigger load from maven repo
                 return new KieRepositoryImpl();
             }
         };
         kieServicesLocal.set(ks);
     }
     
-    private static final ThreadLocal<KieServices> kieServicesLocal = new ThreadLocal<>();
-    
+    /**
+     * Gets the thread-local KieServices instance.
+     * 
+     * @return the KieServices instance for this thread
+     * @throws IllegalStateException if called from a different thread than the one that created this config
+     */
     KieServices getKieServicesInstance() { 
         KieServices ks = kieServicesLocal.get();
-        if( ks == null ) { 
-            throw new IllegalStateException(KieModuleDeploymentHelper.class.getSimpleName() + " instances are not thread-safe!");
+        if (ks == null) { 
+            throw new IllegalStateException(
+                KieModuleDeploymentHelper.class.getSimpleName() + 
+                " instances are not thread-safe! Each thread must use its own instance."
+            );
         }
         return ks;        
     }
