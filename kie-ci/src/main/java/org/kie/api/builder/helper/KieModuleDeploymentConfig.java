@@ -20,6 +20,7 @@ package org.kie.api.builder.helper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.drools.compiler.kie.builder.impl.KieRepositoryImpl;
 import org.drools.compiler.kie.builder.impl.KieServicesImpl;
@@ -33,14 +34,37 @@ import org.kie.util.maven.support.ReleaseIdImpl;
 public class KieModuleDeploymentConfig {
 
     // Getter/setter's only made when the code actually needs them
+/**
+ * Configuration holder for KieModule deployment.
+ * <p>
+ * This class encapsulates all configuration needed to create and deploy a KJar,
+ * including Maven coordinates, resources, classes, and dependencies.
+ * </p>
+ * <p>
+ * <b>Thread Safety:</b> This class is NOT thread-safe. Each thread should use
+ * its own instance via {@link KieModuleDeploymentHelperImpl}.
+ * </p>
+ */
+class KieModuleDeploymentConfig {
+
+    // Constants for default values
+    private static final String DEFAULT_KBASE_NAME = "defaultKieBase";
+    private static final String DEFAULT_KSESSION_NAME = "defaultKieSession";
     
-    private String groupId = null;
-    private String artifactId = null;
-    private String version = null;
-    private ReleaseId releaseId = null;
+    // Maven coordinates
+    private String groupId;
+    private String artifactId;
+    private String version;
+    private ReleaseId releaseId;
     
-    private String kbaseName = null;
-    private String ksessionName = null;
+    // KieBase and KieSession names
+    private String kbaseName;
+    private String ksessionName;
+    
+    // Collections for resources, classes, and dependencies
+    final List<String> resourceFilePaths = new ArrayList<>();
+    final List<Class<?>> classes = new ArrayList<>();
+    final List<String> dependencies = new ArrayList<>();
     
     List<String> resourceFilePaths = new ArrayList<>();
     List<Class<?>> classes = new ArrayList<>();
