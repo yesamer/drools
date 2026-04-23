@@ -23,7 +23,7 @@ import org.kie.api.builder.helper.KieModuleDeploymentHelperImpl;
 import org.kie.api.builder.helper.SingleKieModuleDeploymentHelper;
 
 /**
- * Modern factory for creating KieModule deployment helpers.
+ * Factory for creating KieModule deployment helpers.
  * <p>
  * This class provides a clean, intuitive API for programmatically creating and deploying
  * KJars (Knowledge JARs) to Maven repositories. It offers two distinct factory methods

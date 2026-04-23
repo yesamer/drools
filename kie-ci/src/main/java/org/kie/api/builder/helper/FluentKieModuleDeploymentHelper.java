@@ -26,120 +26,205 @@ import org.kie.api.builder.model.KieModuleModel;
 import org.kie.api.runtime.KieSession;
 
 /**
- * A fluent interface to the {@link KieModuleDeploymentHelper} functionality. See
- * the {@link KieModuleDeploymentHelper} for more info.
+ * Fluent interface for creating and deploying KJars (Knowledge JARs) with method chaining.
+ * <p>
+ * Provides a readable, step-by-step API for configuring KJars. Ideal when you want to build
+ * configuration incrementally or when readability is a priority.
+ * </p>
+ * 
+ * <h3>Basic Usage:</h3>
+ * <pre>{@code
+ * KieModuleDeployment.fluent()
+ *     .setGroupId("com.example")
+ *     .setArtifactId("business-rules")
+ *     .setVersion("1.0.0")
+ *     .setKBaseName("defaultKieBase")
+ *     .setKieSessionname("defaultKieSession")
+ *     .addResourceFilePath("/rules/validation.drl")
+ *     .addClass(Customer.class)
+ *     .addDependencies("org.apache.commons:commons-lang3:3.12.0")
+ *     .createKieJarAndDeployToMaven();
+ * }</pre>
+ * 
+ * <h3>Advanced Configuration:</h3>
+ * <p>
+ * For multiple KieBases or custom configurations, access the {@link KieModuleModel}:
+ * </p>
+ * <pre>{@code
+ * FluentKieModuleDeploymentHelper helper = KieModuleDeployment.fluent()
+ *     .setGroupId("com.example")
+ *     .setArtifactId("multi-base-rules")
+ *     .setVersion("1.0.0");
+ * 
+ * KieModuleModel kmodule = helper.getKieModuleModel();
+ * kmodule.newKieBaseModel("streamingBase")
+ *     .setEventProcessingMode(EventProcessingOption.STREAM)
+ *     .newKieSessionModel("streamSession")
+ *     .setClockType(ClockTypeOption.PSEUDO);
+ * 
+ * helper.addResourceFilePath("/rules/").createKieJarAndDeployToMaven();
+ * }</pre>
+ * 
+ * @see org.kie.api.builder.KieModuleDeployment#fluent()
+ * @see SingleKieModuleDeploymentHelper
+ * @since 1.0.0
  */
 public abstract class FluentKieModuleDeploymentHelper extends KieModuleDeploymentHelper {
 
     /**
-     * Fluent API
-     */
-
-    /**
-     * Set the group id of the Kjar
-     * @param groupId The group id
-     * @return The helper instance
+     * Sets the Maven group ID (e.g., "com.example").
+     * 
+     * @param groupId the Maven group ID (required)
+     * @return this helper instance for method chaining
+     * @throws IllegalArgumentException if groupId is null
      */
     public abstract FluentKieModuleDeploymentHelper setGroupId(String groupId);
 
     /**
-     * Set the artifact id of the Kjar
-     * @param artifactId The artifact id
-     * @return The helper instance
+     * Sets the Maven artifact ID (e.g., "business-rules").
+     * 
+     * @param artifactId the Maven artifact ID (required)
+     * @return this helper instance for method chaining
+     * @throws IllegalArgumentException if artifactId is null
      */
     public abstract FluentKieModuleDeploymentHelper setArtifactId(String artifactId);
 
     /**
-     * Set the (pom) version of the Kjar
-     * @param version The version
-     * @return The helper instance
+     * Sets the Maven version (e.g., "1.0.0" or "1.0-SNAPSHOT").
+     * 
+     * @param version the Maven version (required)
+     * @return this helper instance for method chaining
+     * @throws IllegalArgumentException if version is null
      */
     public abstract FluentKieModuleDeploymentHelper setVersion(String version);
 
     /**
-     * Set a {@link KieBase} name. </p> If you want to add multiple {@link KieBase}'s, use
-     * the {@link FluentKieModuleDeploymentHelper#getKieModuleModel()} method. 
-     * @param kbaseName The {@link KieBase} name
-     * @return The helper instance
+     * Sets the default KieBase name.
+     * <p>
+     * For multiple KieBases with different configurations, use {@link #getKieModuleModel()} instead.
+     * </p>
+     * 
+     * @param kbaseName the KieBase name (e.g., "defaultKieBase")
+     * @return this helper instance for method chaining
+     * @throws IllegalArgumentException if kbaseName is null
      */
     public abstract FluentKieModuleDeploymentHelper setKBaseName(String kbaseName);
    
     /**
-     * Set the {@link KieSession} name. </p> If you want to add multiple {@link KieSession}'s, use
-     * the {@link FluentKieModuleDeploymentHelper#getKieModuleModel()} method. 
-     * @param ksessionName The {@link KieSession} name
-     * @return The helper instance
+     * Sets the default KieSession name.
+     * <p>
+     * For multiple KieSessions with different configurations, use {@link #getKieModuleModel()} instead.
+     * </p>
+     * 
+     * @param ksessionName the KieSession name (e.g., "defaultKieSession")
+     * @return this helper instance for method chaining
+     * @throws IllegalArgumentException if ksessionName is null
      */
     public abstract FluentKieModuleDeploymentHelper setKieSessionname(String ksessionName);
 
     /**
-     * Set the list of paths containing resources. If the path refers to a directory, 
-     * all files in that directory will be added as resource files. 
-     * @param resourceFilePaths The list of resource file paths
-     * @return The helper instance
+     * Sets the resource file paths, replacing any previously set paths.
+     * <p>
+     * Paths can be individual files, directories (ending with /), classpath resources, or file system paths.
+     * </p>
+     * 
+     * @param resourceFilePaths list of paths to rule files or directories
+     * @return this helper instance for method chaining
+     * @throws IllegalArgumentException if resourceFilePaths is null
      */
     public abstract FluentKieModuleDeploymentHelper setResourceFilePaths(List<String> resourceFilePaths);
 
     /**
-     * Add a path containing one or more resources. If the path is a directory,
-     * all files in the directory will be added as resource files. 
-     * @param resourceFilePath The resource file path
-     * @return The helper instance
+     * Adds one or more resource file paths (additive operation).
+     * 
+     * @param resourceFilePath one or more paths to rule files or directories
+     * @return this helper instance for method chaining
+     * @throws IllegalArgumentException if resourceFilePath is null or contains null elements
      */
     public abstract FluentKieModuleDeploymentHelper addResourceFilePath(String... resourceFilePath);
 
     /**
-     * Set the list of classes to be added to the Kjar.
-     * @param classesForKjar The list of classes
-     * @return The helper instance
+     * Sets the classes to include in the KJar, replacing any previously set classes.
+     * 
+     * @param classesForKjar list of domain model classes to include
+     * @return this helper instance for method chaining
+     * @throws IllegalArgumentException if classesForKjar is null
      */
     public abstract FluentKieModuleDeploymentHelper setClasses(List<Class<?>> classesForKjar);
 
     /**
-     * Add a class that should be included in the Kjar.
-     * @param classForKjar The class
-     * @return The helper instance
+     * Adds one or more classes to include in the KJar (additive operation).
+     * 
+     * @param classForKjar one or more classes to include
+     * @return this helper instance for method chaining
+     * @throws IllegalArgumentException if classForKjar is null or contains null elements
      */
     public abstract FluentKieModuleDeploymentHelper addClass(Class<?>... classForKjar);
    
     /**
-     * Set the list of dependencies that the Kjar should use. 
-     * @param dependencies The list of dependencies
-     * @return The helper instance
+     * Sets Maven dependencies, replacing any previously set dependencies.
+     * <p>
+     * Dependencies must be in "groupId:artifactId:version" format.
+     * </p>
+     * 
+     * @param dependencies list of dependencies in "G:A:V" format
+     * @return this helper instance for method chaining
+     * @throws IllegalArgumentException if dependencies is null
      */
     public abstract FluentKieModuleDeploymentHelper setDependencies(List<String> dependencies);
 
     /**
-     * Add one or more dependencies (specified by a "G:A:V" string) that the Kjar should use. 
-     * @param dependency One or more strings specifying a dependency
-     * @return The helper instance
+     * Adds one or more Maven dependencies (additive operation).
+     * <p>
+     * Dependencies must be in "groupId:artifactId:version" format.
+     * </p>
+     * 
+     * @param dependency one or more dependency strings in "G:A:V" format
+     * @return this helper instance for method chaining
+     * @throws IllegalArgumentException if dependency is null, contains null elements, or format is incorrect
      */
     public abstract FluentKieModuleDeploymentHelper addDependencies(String... dependency);
    
     /**
-     * Get the {@link KieModuleModel}. Use the {@link KieModuleModel} instance to add
-     * more {@link KieBase} or {@link KieSession} instances as well as add or change the 
-     * default configuration of the {@link KieSession}'s.
-     * @return The {@link KieModuleModel} instance
+     * Gets the underlying KieModuleModel for advanced configuration.
+     * <p>
+     * Use this to configure multiple KieBases, custom KieSessions, event processing modes,
+     * equality behaviors, and other advanced features.
+     * </p>
+     * 
+     * @return the {@link KieModuleModel} for advanced configuration
      */
     public abstract KieModuleModel getKieModuleModel();
 
     /**
-     * Reset the helper. This clears <i>ALL</i> configuration that has been done up to this point
-     * on the helper instance.
-     * @return The helper instance
+     * Resets all configuration on this helper instance.
+     * <p>
+     * Clears ALL settings including Maven coordinates, resources, classes, dependencies,
+     * and KieModuleModel configuration. Useful for reusing the same helper instance.
+     * </p>
+     * 
+     * @return this helper instance (with cleared configuration) for method chaining
      */
     public abstract FluentKieModuleDeploymentHelper resetHelper();
    
     /**
-     * Create the Kjar
-     * @return The {@link KieModule} that represents the Kjar
+     * Creates the KJar with current configuration (does not deploy to Maven).
+     * 
+     * @return the created {@link KieModule}
+     * @throws IllegalStateException if required configuration (groupId, artifactId, version) is missing
+     * @throws RuntimeException if KJar creation fails
      */
     public abstract KieModule createKieJar();
    
     /**
-     * Create the Kjar and deploy (install) it to the local maven repository.
+     * Creates the KJar and deploys it to the local Maven repository (~/.m2/repository).
+     * <p>
+     * After deployment, the KJar can be used as a Maven dependency in other projects.
+     * </p>
+     * 
+     * @throws IllegalStateException if required configuration is missing
+     * @throws RuntimeException if KJar creation or deployment fails
      */
     public abstract void createKieJarAndDeployToMaven();
     
-}    
+}
