@@ -18,19 +18,48 @@
  */
 package org.kie.api.builder.helper;
 
+import org.kie.api.builder.KieModuleDeployment;
+
 /**
  * This class provides users with the ability to programmatically create
- * kjars and deploy them to the available maven repositories. 
+ * kjars and deploy them to the available maven repositories.
  * </p>
  * Both a fluent and "single-method" interface are provided.
+ *
+ * @deprecated Use {@link org.kie.api.builder.KieModuleDeployment} instead for a clearer, more intuitive API.
+ *             The factory methods in this class will be removed in a future version.
+ *             <p>
+ *             Migration guide:
+ *             <ul>
+ *               <li>{@code KieModuleDeploymentHelper.newFluentInstance()} → {@link org.kie.api.builder.KieModuleDeployment#fluent()}</li>
+ *               <li>{@code KieModuleDeploymentHelper.newSingleInstance()} → {@link org.kie.api.builder.KieModuleDeployment#single()}</li>
+ *             </ul>
+ *             </p>
  */
+@Deprecated(since = "10.3.0", forRemoval = true)
 public class KieModuleDeploymentHelper {
 
-    public static final FluentKieModuleDeploymentHelper newFluentInstance() { 
-        return new KieModuleDeploymentHelperImpl();
+    /**
+     * Creates a new fluent-style deployment helper.
+     *
+     * @return a new {@link FluentKieModuleDeploymentHelper} instance
+     * @deprecated Use {@link org.kie.api.builder.KieModuleDeployment#fluent()} instead.
+     *             This method will be removed in a future version.
+     */
+    @Deprecated(since = "10.3.0", forRemoval = true)
+    public static FluentKieModuleDeploymentHelper newFluentInstance() {
+        return KieModuleDeployment.fluent();
     }
     
-    public static final SingleKieModuleDeploymentHelper newSingleInstance() { 
-        return new KieModuleDeploymentHelperImpl();
+    /**
+     * Creates a new single-method deployment helper.
+     *
+     * @return a new {@link SingleKieModuleDeploymentHelper} instance
+     * @deprecated Use {@link org.kie.api.builder.KieModuleDeployment#single()} instead.
+     *             This method will be removed in a future version.
+     */
+    @Deprecated(since = "10.3.0", forRemoval = true)
+    public static SingleKieModuleDeploymentHelper newSingleInstance() {
+        return KieModuleDeployment.single();
     }
 }
