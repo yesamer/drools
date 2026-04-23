@@ -31,9 +31,6 @@ import org.kie.api.builder.model.KieBaseModel;
 import org.kie.api.builder.model.KieModuleModel;
 import org.kie.util.maven.support.ReleaseIdImpl;
 
-public class KieModuleDeploymentConfig {
-
-    // Getter/setter's only made when the code actually needs them
 /**
  * Configuration holder for KieModule deployment.
  * <p>
