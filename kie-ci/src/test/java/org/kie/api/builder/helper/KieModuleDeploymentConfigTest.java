@@ -27,9 +27,6 @@ import org.kie.api.builder.model.KieSessionModel;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * Tests for {@link KieModuleDeploymentConfig} logic (not simple getters/setters).
- */
 class KieModuleDeploymentConfigTest {
 
     @Test
@@ -258,6 +255,144 @@ class KieModuleDeploymentConfigTest {
         assertThat(releaseId.getArtifactId()).isEqualTo("my-artifact");
         assertThat(releaseId.getVersion()).isEqualTo("2.0.0-SNAPSHOT");
     }
-}
 
-// Made with Bob
+    @Test
+    void testSetGroupId_invalidatesReleaseIdCache() {
+        KieModuleDeploymentConfig config = new KieModuleDeploymentConfig();
+        config.setGroupId("com.example");
+        config.setArtifactId("test-artifact");
+        config.setVersion("1.0.0");
+
+        // Get and cache ReleaseId
+        ReleaseId releaseId1 = config.getReleaseId();
+        assertThat(releaseId1.getGroupId()).isEqualTo("com.example");
+
+        // Change groupId - should invalidate cache
+        config.setGroupId("org.different");
+
+        // Get ReleaseId again - should be a NEW instance with updated groupId
+        ReleaseId releaseId2 = config.getReleaseId();
+        assertThat(releaseId2).isNotSameAs(releaseId1);
+        assertThat(releaseId2.getGroupId()).isEqualTo("org.different");
+        assertThat(releaseId2.getArtifactId()).isEqualTo("test-artifact");
+        assertThat(releaseId2.getVersion()).isEqualTo("1.0.0");
+    }
+
+    @Test
+    void testSetArtifactId_invalidatesReleaseIdCache() {
+        KieModuleDeploymentConfig config = new KieModuleDeploymentConfig();
+        config.setGroupId("com.example");
+        config.setArtifactId("test-artifact");
+        config.setVersion("1.0.0");
+
+        // Get and cache ReleaseId
+        ReleaseId releaseId1 = config.getReleaseId();
+        assertThat(releaseId1.getArtifactId()).isEqualTo("test-artifact");
+
+        // Change artifactId - should invalidate cache
+        config.setArtifactId("different-artifact");
+
+        // Get ReleaseId again - should be a NEW instance with updated artifactId
+        ReleaseId releaseId2 = config.getReleaseId();
+        assertThat(releaseId2).isNotSameAs(releaseId1);
+        assertThat(releaseId2.getGroupId()).isEqualTo("com.example");
+        assertThat(releaseId2.getArtifactId()).isEqualTo("different-artifact");
+        assertThat(releaseId2.getVersion()).isEqualTo("1.0.0");
+    }
+
+    @Test
+    void testSetVersion_invalidatesReleaseIdCache() {
+        KieModuleDeploymentConfig config = new KieModuleDeploymentConfig();
+        config.setGroupId("com.example");
+        config.setArtifactId("test-artifact");
+        config.setVersion("1.0.0");
+
+        // Get and cache ReleaseId
+        ReleaseId releaseId1 = config.getReleaseId();
+        assertThat(releaseId1.getVersion()).isEqualTo("1.0.0");
+
+        // Change version - should invalidate cache
+        config.setVersion("2.0.0");
+
+        // Get ReleaseId again - should be a NEW instance with updated version
+        ReleaseId releaseId2 = config.getReleaseId();
+        assertThat(releaseId2).isNotSameAs(releaseId1);
+        assertThat(releaseId2.getGroupId()).isEqualTo("com.example");
+        assertThat(releaseId2.getArtifactId()).isEqualTo("test-artifact");
+        assertThat(releaseId2.getVersion()).isEqualTo("2.0.0");
+    }
+
+    @Test
+    void testSetKbaseName_invalidatesKieModuleModelCache() {
+        KieModuleDeploymentConfig config = new KieModuleDeploymentConfig();
+        config.setKbaseName("originalKieBase");
+
+        // Get and cache KieModuleModel
+        KieModuleModel kmodule1 = config.getKieProject();
+        assertThat(kmodule1.getKieBaseModels()).containsKey("originalKieBase");
+
+        // Change kbaseName - should invalidate cache
+        config.setKbaseName("newKieBase");
+
+        // Get KieModuleModel again - should be a NEW instance with updated kbaseName
+        KieModuleModel kmodule2 = config.getKieProject();
+        assertThat(kmodule2).isNotSameAs(kmodule1);
+        assertThat(kmodule2.getKieBaseModels()).containsKey("newKieBase");
+        assertThat(kmodule2.getKieBaseModels()).doesNotContainKey("originalKieBase");
+    }
+
+    @Test
+    void testSetKsessionName_invalidatesKieModuleModelCache() {
+        KieModuleDeploymentConfig config = new KieModuleDeploymentConfig();
+        config.setKsessionName("originalKieSession");
+
+        // Get and cache KieModuleModel
+        KieModuleModel kmodule1 = config.getKieProject();
+        KieBaseModel kbase1 = kmodule1.getKieBaseModels().get("defaultKieBase");
+        assertThat(kbase1.getKieSessionModels()).containsKey("originalKieSession");
+
+        // Change ksessionName - should invalidate cache
+        config.setKsessionName("newKieSession");
+
+        // Get KieModuleModel again - should be a NEW instance with updated ksessionName
+        KieModuleModel kmodule2 = config.getKieProject();
+        assertThat(kmodule2).isNotSameAs(kmodule1);
+        KieBaseModel kbase2 = kmodule2.getKieBaseModels().get("defaultKieBase");
+        assertThat(kbase2.getKieSessionModels()).containsKey("newKieSession");
+        assertThat(kbase2.getKieSessionModels()).doesNotContainKey("originalKieSession");
+    }
+
+    @Test
+    void testMultipleSetters_invalidateCachesIndependently() {
+        KieModuleDeploymentConfig config = new KieModuleDeploymentConfig();
+        
+        // Set up initial configuration
+        config.setGroupId("com.example");
+        config.setArtifactId("test-artifact");
+        config.setVersion("1.0.0");
+        config.setKbaseName("myKieBase");
+        config.setKsessionName("myKieSession");
+
+        // Cache both ReleaseId and KieModuleModel
+        ReleaseId releaseId1 = config.getReleaseId();
+        KieModuleModel kmodule1 = config.getKieProject();
+
+        // Change only Maven coordinates - should invalidate only ReleaseId
+        config.setVersion("2.0.0");
+        
+        ReleaseId releaseId2 = config.getReleaseId();
+        KieModuleModel kmodule2 = config.getKieProject();
+        
+        assertThat(releaseId2).isNotSameAs(releaseId1); // ReleaseId invalidated
+        assertThat(kmodule2).isSameAs(kmodule1); // KieModuleModel still cached
+
+        // Now change KieBase name - should invalidate only KieModuleModel
+        config.setKbaseName("differentKieBase");
+        
+        ReleaseId releaseId3 = config.getReleaseId();
+        KieModuleModel kmodule3 = config.getKieProject();
+        
+        assertThat(releaseId3).isSameAs(releaseId2); // ReleaseId still cached
+        assertThat(kmodule3).isNotSameAs(kmodule2); // KieModuleModel invalidated
+    }
+}
