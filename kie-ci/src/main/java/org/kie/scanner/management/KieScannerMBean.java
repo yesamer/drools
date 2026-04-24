@@ -20,18 +20,18 @@ package org.kie.scanner.management;
 
 public interface KieScannerMBean {
 
-    public abstract String getScannerReleaseId();
+    String getScannerReleaseId();
 
-    public abstract String getCurrentReleaseId();
+    String getCurrentReleaseId();
 
-    public abstract String getStatus();
+    String getStatus();
 
-    public abstract void scanNow();
+    void scanNow();
 
-    public abstract void start(long pollingInterval);
+    void start(long pollingInterval);
 
-    public abstract void stop();
+    void stop();
     
-    public abstract void shutdown();
+    void shutdown();
 
 }
