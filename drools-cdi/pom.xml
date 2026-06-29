@@ -129,7 +129,7 @@
         <configuration>
           <instructions>
             <Import-Package>
-              javax.enterprise.*;resolution:=optional,
+              jakarta.enterprise.*;resolution:=optional,
               org.osgi.*;resolution:=optional,
               *
             </Import-Package>

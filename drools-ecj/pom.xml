@@ -59,6 +59,7 @@
             <!-- shade ecj to allow the gwt compiler to use its own version -->
             <plugin>
                 <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>

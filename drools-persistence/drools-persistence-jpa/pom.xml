@@ -56,7 +56,7 @@
           <instructions>
             <Import-Package>
               javassist.util.proxy;resolution:=optional,
-              javax.transaction;resolution:=optional,
+              jakarta.transaction;resolution:=optional,
               javax.naming;resolution:=optional,
               org.drools.container.spring.beans.persistence;resolution:=optional,
               org.drools.core.marshalling.impl;resolution:=optional,
@@ -125,12 +125,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.sun.xml.bind</groupId>
+      <groupId>org.glassfish.jaxb</groupId>
       <artifactId>jaxb-xjc</artifactId>
       <scope>provided</scope>
     </dependency>
@@ -176,11 +176,6 @@
     <!-- Hibernate -->
     <dependency>
       <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-entitymanager</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core</artifactId>
       <scope>test</scope>
       <exclusions>
@@ -210,11 +205,6 @@
     <dependency>
       <groupId>org.jboss.narayana.jta</groupId>
       <artifactId>narayana-jta</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss</groupId>
-      <artifactId>jboss-transaction-spi-jakarta</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

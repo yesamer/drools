@@ -18,10 +18,10 @@ package org.drools.example.cdi.scopes;
 
 import java.io.Serializable;
 import java.util.UUID;
-import javax.enterprise.context.Conversation;
-import javax.enterprise.context.ConversationScoped;
-import javax.enterprise.inject.spi.PassivationCapable;
-import javax.inject.Inject;
+import jakarta.enterprise.context.Conversation;
+import jakarta.enterprise.context.ConversationScoped;
+import jakarta.enterprise.inject.spi.PassivationCapable;
+import jakarta.inject.Inject;
 
 import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieSession;

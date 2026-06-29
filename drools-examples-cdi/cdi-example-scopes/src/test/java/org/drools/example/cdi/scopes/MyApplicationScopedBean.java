@@ -16,8 +16,8 @@
 
 package org.drools.example.cdi.scopes;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieSession;
 

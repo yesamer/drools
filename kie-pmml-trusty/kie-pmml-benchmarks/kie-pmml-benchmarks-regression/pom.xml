@@ -14,6 +14,10 @@
   <name>KIE :: PMML :: Benchmarks :: Regression</name>
   <description>Benchmarks for Regression module</description>
 
+  <properties>
+    <java.module.name>org.kie.pmml.benchmarks</java.module.name>
+  </properties>
+
 
   <dependencies>
     <!-- PMML -->

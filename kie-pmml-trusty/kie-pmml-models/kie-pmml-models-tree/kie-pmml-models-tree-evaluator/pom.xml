@@ -11,6 +11,10 @@
   <name>KIE :: PMML :: Models :: Tree :: Evaluator</name>
   <description>PMML Tree Evaluator</description>
 
+  <properties>
+    <java.module.name>org.kie.pmml.models.tree</java.module.name>
+  </properties>
+
   <dependencies>
     <!-- PMML -->
     <dependency>

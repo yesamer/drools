@@ -14,6 +14,10 @@
   <name>KIE :: PMML :: Evaluator :: Assembler</name>
   <description>Population of KIE knowledge base</description>
 
+  <properties>
+    <java.module.name>org.kie.pmml.evaluator</java.module.name>
+  </properties>
+
   <dependencies>
     <!-- PMML -->
     <dependency>

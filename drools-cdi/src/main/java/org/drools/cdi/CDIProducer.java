@@ -15,8 +15,8 @@
  */
 package org.drools.cdi;
 
-import javax.enterprise.context.Dependent;
-import javax.enterprise.inject.Produces;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.inject.Produces;
 import org.drools.mvel.MVELSafeHelper;
 import org.kie.soup.project.datamodel.commons.util.MVELEvaluator;
 

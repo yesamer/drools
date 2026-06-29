@@ -19,9 +19,9 @@ package org.kie.pmml.pmml_4_2;
 
 import org.dmg.pmml.pmml_4_2.descr.*;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.math.BigInteger;

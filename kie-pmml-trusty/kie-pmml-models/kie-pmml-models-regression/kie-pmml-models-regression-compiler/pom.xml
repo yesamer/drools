@@ -14,6 +14,10 @@
   <name>KIE :: PMML :: Models :: Regression :: Compiler</name>
   <description>PMML Regression Compiler</description>
 
+  <properties>
+    <java.module.name>org.kie.pmml.models.regression</java.module.name>
+  </properties>
+
   <dependencies>
     <!-- PMML -->
     <dependency>

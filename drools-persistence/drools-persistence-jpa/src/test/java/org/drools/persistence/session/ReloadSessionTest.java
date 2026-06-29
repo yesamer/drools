@@ -21,8 +21,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Random;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 
 import org.drools.core.common.DefaultFactHandle;
 import org.drools.core.impl.InternalKnowledgeBase;

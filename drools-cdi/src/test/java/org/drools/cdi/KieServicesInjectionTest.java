@@ -16,7 +16,7 @@
 
 package org.drools.cdi;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

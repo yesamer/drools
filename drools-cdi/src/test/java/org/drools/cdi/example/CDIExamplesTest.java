@@ -17,7 +17,7 @@ package org.drools.cdi.example;
 
 
 import static org.junit.Assert.assertEquals;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.drools.cdi.CDITestRunner;
 import org.junit.AfterClass;

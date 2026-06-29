@@ -24,8 +24,8 @@ import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.Enumeration;
 import java.util.Set;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.util.AnnotationLiteral;
+import jakarta.enterprise.inject.spi.Bean;
+import jakarta.enterprise.util.AnnotationLiteral;
 
 import org.drools.cdi.CDITestRunner;
 import org.drools.compiler.kie.builder.impl.KieServicesImpl;

@@ -21,10 +21,10 @@ import java.util.Map;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.transaction.RollbackException;
-import javax.transaction.UserTransaction;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.UserTransaction;
 
 import org.drools.core.command.impl.CommandBasedStatefulKnowledgeSession;
 import org.drools.core.impl.InternalKnowledgeBase;
@@ -147,7 +147,7 @@ public class JtaTransactionManagerTest {
             logger.info("The following " + IllegalStateException.class.getSimpleName() + " SHOULD be thrown.");
             tx.commit();
         }
-        catch( Exception e ) { 
+        catch( Exception e ) {
             if( e instanceof RollbackException || e.getCause() instanceof TransientObjectException ) {
                 rollBackExceptionthrown = true;
 

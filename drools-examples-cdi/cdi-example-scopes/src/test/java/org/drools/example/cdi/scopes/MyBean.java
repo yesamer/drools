@@ -16,7 +16,7 @@
 
 package org.drools.example.cdi.scopes;
 
-import javax.enterprise.inject.spi.PassivationCapable;
+import jakarta.enterprise.inject.spi.PassivationCapable;
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
 

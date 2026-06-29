@@ -20,7 +20,7 @@ import org.jboss.weld.environment.se.WeldContainer;
 import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieSession;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.io.PrintStream;
 
 public class CDIExample {

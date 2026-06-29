@@ -15,8 +15,8 @@
 
 package org.drools.cdi.example;
 
-import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Inject;
 
 public class MessageProducers2 {        
     @Inject @Msg1

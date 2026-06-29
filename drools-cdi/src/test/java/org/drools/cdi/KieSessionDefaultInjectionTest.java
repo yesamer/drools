@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.drools.cdi.kproject.AbstractKnowledgeTest;
 import org.junit.AfterClass;

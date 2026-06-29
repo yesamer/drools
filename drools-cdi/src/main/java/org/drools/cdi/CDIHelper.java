@@ -18,8 +18,8 @@ package org.drools.cdi;
 
 import java.lang.annotation.Annotation;
 import java.util.Set;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.Bean;
+import jakarta.enterprise.inject.spi.BeanManager;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 

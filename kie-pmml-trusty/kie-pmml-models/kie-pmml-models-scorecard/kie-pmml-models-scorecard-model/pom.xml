@@ -12,6 +12,10 @@
   <name>KIE :: PMML :: Models :: Scorecard :: Model</name>
   <description>KiePMML Model for Scorecard implementation</description>
 
+  <properties>
+    <java.module.name>org.kie.pmml.models.scorecard</java.module.name>
+  </properties>
+
   <dependencies>
     <!-- PMML -->
     <dependency>

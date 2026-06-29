@@ -14,6 +14,10 @@
   <name>KIE :: PMML :: Kie :: Dependencies</name>
   <description>PMML Kie-dependant module</description>
 
+  <properties>
+    <java.module.name>org.kie.pmml.trusty</java.module.name>
+  </properties>
+
   <dependencies>
     <!-- PMML -->
     <dependency>

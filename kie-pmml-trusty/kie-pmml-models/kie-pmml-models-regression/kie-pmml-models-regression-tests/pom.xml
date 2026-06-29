@@ -13,6 +13,10 @@
   <name>KIE :: PMML :: Models :: Regression :: Tests</name>
   <description>PMML Regression Tests</description>
 
+  <properties>
+    <java.module.name>org.kie.pmml.models.regression</java.module.name>
+  </properties>
+
   <dependencies>
     <!-- TEST -->
     <!-- PMML -->

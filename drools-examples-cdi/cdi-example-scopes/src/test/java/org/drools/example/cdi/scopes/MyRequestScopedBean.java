@@ -19,8 +19,8 @@ package org.drools.example.cdi.scopes;
 import org.kie.api.cdi.KSession;
 import org.kie.api.runtime.KieSession;
 
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
 
 @RequestScoped
 public class MyRequestScopedBean {

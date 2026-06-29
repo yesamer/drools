@@ -15,6 +15,7 @@
   <description>Common code for PMML module</description>
 
   <properties>
+    <java.module.name>org.kie.pmml.commons</java.module.name>
     <sonar.coverage.exclusions>**/exceptions/**.java,**/model/predicates/**.java</sonar.coverage.exclusions>
   </properties>
 

@@ -4,4 +4,4 @@
                                      xmlns = {@XmlNs(prefix = "tc", namespaceURI = "http://www.omg.org/spec/DMN/20160719/testcase")})
 package org.kie.dmn.validation.dtanalysis.mcdc.dmntck;
 
-import javax.xml.bind.annotation.XmlNs;
+import jakarta.xml.bind.annotation.XmlNs;
