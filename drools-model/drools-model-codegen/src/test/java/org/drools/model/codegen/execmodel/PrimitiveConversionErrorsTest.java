@@ -182,9 +182,9 @@ public class PrimitiveConversionErrorsTest {
     private static String getValueString(Object value) {
 
         if (value instanceof Float) {
-            return String.format("%.2ff", value);
+            return String.format(java.util.Locale.ROOT, "%.2ff", value);
         } else if (value instanceof Double) {
-            return String.format("%.2f", value);
+            return String.format(java.util.Locale.ROOT, "%.2f", value);
         } else {
             return value.toString();
         }

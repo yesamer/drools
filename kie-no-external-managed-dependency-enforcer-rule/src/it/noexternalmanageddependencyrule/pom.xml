@@ -34,7 +34,7 @@
     <root_pom>./pom.xml</root_pom>
     <!-- Used to define which artifact are allowed in dependency management even if not implemented in the multimodule project; e.g. if those are generated on-the-fly by script -->
     <allowed_GA>org.kie:kie-no-external-managed-dependency-enforcer-rule</allowed_GA>
-    <version.maven.enforcer>3.3.0</version.maven.enforcer>
+    <version.maven.enforcer>3.6.3</version.maven.enforcer>
   </properties>
 
   <modules>

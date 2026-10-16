@@ -31,7 +31,7 @@ import org.kie.memorycompiler.jdknative.NativeJavaCompiler;
  * The valid values are "ECLIPSE" and "NATIVE" only.
  * 
  * drools.dialect.java.compiler = <ECLIPSE|NATIVE>
- * drools.dialect.java.compiler.lnglevel = <17|18|19|20|21>
+ * drools.dialect.java.compiler.lnglevel = <17|18|19|20|21|22|23|24|25>
  *
  * This base class holds the validated values; defaults (Eclipse compiler,
  * language level 17 with autodiscovery from the "java.version" system
@@ -40,7 +40,7 @@ import org.kie.memorycompiler.jdknative.NativeJavaCompiler;
 public class JavaConfiguration {
 
     // This should be in alphabetic order to search with BinarySearch
-    protected static final String[]  LANGUAGE_LEVELS = new String[]{"17", "18", "19", "20", "21"};
+    protected static final String[]  LANGUAGE_LEVELS = new String[]{"17", "18", "19", "20", "21", "22", "23", "24", "25"};
 
     public static final String JAVA_COMPILER_PROPERTY = "drools.dialect.java.compiler";
     public static final String JAVA_LANG_LEVEL_PROPERTY = "drools.dialect.java.compiler.lnglevel";

@@ -81,7 +81,6 @@
         </plugin>
         <plugin>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>${version.maven-surefire}</version>
           <configuration>
             <systemPropertyVariables>
               <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
@@ -89,10 +88,6 @@
               <maven.repo>${settings.localRepository}</maven.repo>
             </systemPropertyVariables>
           </configuration>
-        </plugin>
-        <plugin>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>${version.compiler.plugin}</version>
         </plugin>
       </plugins>
     </pluginManagement>

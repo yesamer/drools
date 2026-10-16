@@ -32,6 +32,10 @@ public class JavaForMvelDialectConfigurationTest {
         new JavaForMvelDialectConfiguration().setJavaLanguageLevel("19");
         new JavaForMvelDialectConfiguration().setJavaLanguageLevel("20");
         new JavaForMvelDialectConfiguration().setJavaLanguageLevel("21");
+        new JavaForMvelDialectConfiguration().setJavaLanguageLevel("22");
+        new JavaForMvelDialectConfiguration().setJavaLanguageLevel("23");
+        new JavaForMvelDialectConfiguration().setJavaLanguageLevel("24");
+        new JavaForMvelDialectConfiguration().setJavaLanguageLevel("25");
     }
 
     @Test

@@ -655,7 +655,7 @@ public class BigDecimalTest extends BaseModelTest {
         ksession.insert(customer);
         ksession.fireAllRules();
 
-        assertThat(result).contains("2,000");
+        assertThat(result).contains(String.format("%,d", 2000L));
     }
 
     @ParameterizedTest
@@ -683,7 +683,7 @@ public class BigDecimalTest extends BaseModelTest {
         ksession.insert(customer);
         ksession.fireAllRules();
 
-        assertThat(result).contains("2,000");
+        assertThat(result).contains(String.format("%,d", 2000L));
     }
 
     @ParameterizedTest
@@ -712,7 +712,7 @@ public class BigDecimalTest extends BaseModelTest {
         ksession.insert(customer);
         ksession.fireAllRules();
 
-        assertThat(result).contains("2,000");
+        assertThat(result).contains(String.format("%,d", 2000L));
     }
 
     public static class Util {

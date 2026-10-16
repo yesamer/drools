@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  * The valid values are "ECLIPSE" and "NATIVE" only.
  * 
  * drools.dialect.java.compiler = <ECLIPSE|NATIVE>
- * drools.dialect.java.compiler.lnglevel = <17|18|19|20|21>
+ * drools.dialect.java.compiler.lnglevel = <17|18|19|20|21|22|23|24|25>
  *
  * Defaults (Eclipse compiler, language level 17 with autodiscovery from the
  * "java.version" system property) are applied by JavaDialectConfiguration#init

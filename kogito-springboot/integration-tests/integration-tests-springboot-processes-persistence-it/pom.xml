@@ -150,7 +150,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>${version.maven-surefire}</version>
         <configuration>
           <classesDirectory>${project.build.outputDirectory}</classesDirectory>
           <systemPropertyVariables>

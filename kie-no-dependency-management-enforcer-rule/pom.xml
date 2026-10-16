@@ -35,8 +35,7 @@
 
   <!-- Since the drools-build-parent pom depends on this rule, we can't inherit properties from it here -->
   <properties>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.enforcer.api>3.6.2</version.enforcer.api>
     <version.org.apache.maven>3.9.16</version.org.apache.maven>
