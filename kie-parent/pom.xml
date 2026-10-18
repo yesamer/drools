@@ -2280,6 +2280,8 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <configuration>
             <encoding>UTF-8</encoding>
+            <!-- JDK 23+ disables implicit annotation processing (processors discovered on the classpath) by default -->
+            <proc>full</proc>
           </configuration>
         </plugin>
         <plugin>
@@ -2583,7 +2585,7 @@
             </excludes>
             <!-- Fixed locale: DRL numeric literals are parsed with a locale-sensitive NumberFormat (see FieldFactory),
                  which gives different results on JDK 25 for e.g. en_IT. TODO: open point, fix in product code. -->
-            <argLine>-Xmx1024m -Dfile.encoding=UTF-8 -Duser.language=en -Duser.region=US</argLine>
+            <argLine>@{argLine} -Xmx1024m -Dfile.encoding=UTF-8 -Duser.language=en -Duser.region=US</argLine>
             <systemPropertyVariables>
               <apple.awt.UIElement>true</apple.awt.UIElement>
               <org.uberfire.nio.git.daemon.enabled>false</org.uberfire.nio.git.daemon.enabled>
@@ -2600,7 +2602,7 @@
               <include>**/*IntegrationTest.java</include>
               <include>**/*IT.java</include>
             </includes>
-            <argLine>-Xmx1024m -Dfile.encoding=UTF-8 -Duser.language=en -Duser.region=US</argLine>
+            <argLine>@{argLine} -Xmx1024m -Dfile.encoding=UTF-8 -Duser.language=en -Duser.region=US</argLine>
           </configuration>
           <executions>
             <execution>
@@ -3279,14 +3281,14 @@
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-surefire-plugin</artifactId>
               <configuration>
-                <argLine>-Xmx1024m -Dfile.encoding=UTF-8 -Duser.language=en -Duser.region=US</argLine>
+                <argLine>@{argLine} -Xmx1024m -Dfile.encoding=UTF-8 -Duser.language=en -Duser.region=US</argLine>
               </configuration>
             </plugin>
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-failsafe-plugin</artifactId>
               <configuration>
-                <argLine>-Xmx1024m -Dfile.encoding=UTF-8 -Duser.language=en -Duser.region=US</argLine>
+                <argLine>@{argLine} -Xmx1024m -Dfile.encoding=UTF-8 -Duser.language=en -Duser.region=US</argLine>
               </configuration>
             </plugin>
           </plugins>
@@ -3299,7 +3301,7 @@
         <!--suppress UnresolvedMavenProperty -->
         <jacoco.agent.line>-javaagent:${settings.localRepository}/org/jacoco/org.jacoco.agent/${version.jacoco.plugin}/org.jacoco.agent-${version.jacoco.plugin}-runtime.jar=destfile=${jacoco.exec.file},append=true,excludes=${jacoco.excludes}</jacoco.agent.line>
         <jacoco.excludes>*Lexer</jacoco.excludes>
-        <surefire.argLine>-Dfile.encoding=${project.build.sourceEncoding}
+        <surefire.argLine>@{argLine} -Dfile.encoding=${project.build.sourceEncoding}
           ${jacoco.agent.line}</surefire.argLine>
       </properties>
       <build>

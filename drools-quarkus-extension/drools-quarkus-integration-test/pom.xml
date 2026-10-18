@@ -142,7 +142,7 @@
             <exclude>**/*Test.java</exclude>
             <exclude>**/Native*</exclude>
           </excludes>
-          <argLine>-Xmx2048m -Xmx4g</argLine>
+          <argLine>@{argLine} -Xmx2048m -Xmx4g</argLine>
           <systemPropertyVariables>
             <maven.repo.local>${session.request.localRepositoryPath.path}</maven.repo.local>
             <maven.settings>${session.request.userSettingsFile.path}</maven.settings>
