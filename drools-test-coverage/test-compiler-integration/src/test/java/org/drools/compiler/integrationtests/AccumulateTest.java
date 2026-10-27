@@ -36,9 +36,12 @@ import java.util.stream.Stream;
 
 import org.drools.compiler.integrationtests.incrementalcompilation.TestUtil;
 import org.drools.core.RuleSessionConfiguration;
+import org.drools.core.marshalling.ClassObjectMarshallingStrategyAcceptor;
+import org.drools.core.marshalling.SerializablePlaceholderResolverStrategy;
 import org.drools.commands.runtime.rule.InsertElementsCommand;
 import org.drools.kiesession.rulebase.InternalKnowledgeBase;
 import org.drools.mvel.compiler.Primitives;
+import org.drools.testcoverage.common.model.Address;
 import org.drools.testcoverage.common.model.Cheese;
 import org.drools.testcoverage.common.model.Cheesery;
 import org.drools.testcoverage.common.model.Order;
@@ -49,6 +52,7 @@ import org.drools.testcoverage.common.model.StockTick;
 import org.drools.testcoverage.common.util.KieBaseTestConfiguration;
 import org.drools.testcoverage.common.util.KieBaseUtil;
 import org.drools.testcoverage.common.util.KieUtil;
+import org.drools.testcoverage.common.util.SerializationHelper;
 import org.drools.testcoverage.common.util.TestParametersUtil2;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -60,10 +64,13 @@ import org.kie.api.builder.Message;
 import org.kie.api.builder.ReleaseId;
 import org.kie.api.event.rule.AfterMatchFiredEvent;
 import org.kie.api.event.rule.AgendaEventListener;
+import org.kie.api.marshalling.ObjectMarshallingStrategy;
 import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.EnvironmentName;
 import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.KieSessionConfiguration;
 import org.kie.api.runtime.rule.AccumulateFunction;
+import org.kie.api.definition.type.FactType;
 import org.kie.api.runtime.rule.FactHandle;
 import org.kie.api.runtime.rule.Match;
 import org.kie.api.runtime.rule.QueryResults;
@@ -4237,6 +4244,93 @@ public class AccumulateTest {
             assertThat(results).containsEntry("list size", 4);
             assertThat(results).containsEntry("low total", 10);
         } finally {
+            ksession.dispose();
+        }
+    }
+
+    @ParameterizedTest(name = "KieBase type={0}")
+    @MethodSource("parameters")
+    @Timeout(10000)
+    public void testAccumulateMinStaleAfterLeftTupleUpdate(KieBaseTestConfiguration kieBaseTestConfiguration) throws Exception {
+        final String drl =
+                "package repro;\n" +
+                "declare P b : long end\n" +
+                "declare S v : long end\n" +
+                "declare G g : long end\n" +
+                "global java.util.List results;\n" +
+                "rule R_acc when\n" +
+                "    $p : P($b : b)\n" +
+                "    accumulate( S(v >= $b, $s : v); $m : min($s) )\n" +
+                "then\n" +
+                "    results.add($m);\n" +
+                "end\n" +
+                "rule R_low salience -5 when $g : G() $p : P()\n" +
+                "then modify($p){ setB(5) } end\n";
+
+        final KieBase kbase = KieBaseUtil.getKieBaseFromKieModuleFromDrl("accumulate-test", kieBaseTestConfiguration, drl);
+        final KieSession ksession = kbase.newKieSession();
+        try {
+            final List<Number> results = new ArrayList<>();
+            ksession.setGlobal("results", results);
+
+            final FactType P = kbase.getFactType("repro", "P");
+            final FactType S = kbase.getFactType("repro", "S");
+            final FactType G = kbase.getFactType("repro", "G");
+
+            final Object p = P.newInstance(); P.set(p, "b", -10L);
+            final Object s12 = S.newInstance(); S.set(s12, "v", 12L);
+            final Object sm2 = S.newInstance(); S.set(sm2, "v", -2L);
+            final Object g = G.newInstance(); G.set(g, "g", 1L);
+
+            ksession.insert(p);
+            ksession.insert(s12);
+            ksession.insert(sm2);
+            ksession.insert(g);
+            ksession.fireAllRules();
+
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0).longValue()).isEqualTo(-2L);
+            assertThat(results.get(1).longValue()).isEqualTo(12L);
+        } finally {
+            ksession.dispose();
+        }
+    }
+
+    @ParameterizedTest(name = "KieBase type={0}")
+    @MethodSource("parameters")
+    public void testMarshallCollectIntoArrayListFromSubnetwork(KieBaseTestConfiguration kieBaseTestConfiguration) throws Exception {
+        final String drl =
+                "import " + Person.class.getCanonicalName() + ";\n" +
+                "import " + Address.class.getCanonicalName() + ";\n" +
+                "import " + ArrayList.class.getCanonicalName() + ";\n" +
+                "rule R when\n" +
+                "  $p: Person()\n" +
+                "  $list: ArrayList() from collect (\n" +
+                "    Address() from $p.addresses\n" +
+                "  )\n" +
+                "then\n" +
+                "end";
+
+        final KieBase kbase = KieBaseUtil.getKieBaseFromKieModuleFromDrl("accumulate-test", kieBaseTestConfiguration, drl);
+        KieSession ksession = kbase.newKieSession();
+        System.setProperty(org.drools.core.util.KeyStoreConstants.PROP_ALLOWED_DESER_CLASS_PATTERNS,
+                "org.drools.testcoverage.common.model.Person;" +
+                "org.drools.testcoverage.common.model.Address");
+        try {
+            ksession.getEnvironment().set(EnvironmentName.OBJECT_MARSHALLING_STRATEGIES,
+                    new ObjectMarshallingStrategy[]{new SerializablePlaceholderResolverStrategy(ClassObjectMarshallingStrategyAcceptor.DEFAULT)});
+
+            final Person mario = new Person("Mario", 40);
+            mario.addAddress(new Address("Via Roma", 1, "Rome"));
+            mario.addAddress(new Address("Via Milano", 2, "Milan"));
+            ksession.insert(mario);
+            assertThat(ksession.fireAllRules()).isEqualTo(1);
+
+            ksession = SerializationHelper.getSerialisedStatefulKnowledgeSession(ksession, true);
+
+            assertThat(ksession.fireAllRules()).isEqualTo(0);
+        } finally {
+            System.clearProperty(org.drools.core.util.KeyStoreConstants.PROP_ALLOWED_DESER_CLASS_PATTERNS);
             ksession.dispose();
         }
     }

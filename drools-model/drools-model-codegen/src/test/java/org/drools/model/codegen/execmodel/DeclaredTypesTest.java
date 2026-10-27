@@ -41,6 +41,8 @@ import org.drools.core.reteoo.EntryPointNode;
 import org.drools.core.reteoo.ObjectTypeNode;
 import org.drools.model.codegen.execmodel.domain.Address;
 import org.drools.model.codegen.execmodel.domain.Person;
+import org.drools.model.codegen.execmodel.domain.PlainParent;
+import org.drools.model.codegen.execmodel.domain.PositionalParent;
 import org.drools.model.codegen.execmodel.domain.Result;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -658,6 +660,144 @@ public class DeclaredTypesTest extends BaseModelTest {
 
         ksession.insert(f1);
         assertThat(ksession.fireAllRules()).isEqualTo(1);
+    }
+
+    @ParameterizedTest
+    @MethodSource("parametersPatternOnly")
+    public void testExtendPojoInheritedFieldsConstructor(RUN_TYPE runType) throws Exception {
+        // A declared type extending a Java (classpath) class must generate a full-argument
+        // constructor that also includes the superclass @Position fields and forwards them to
+        // super(...). PositionalParent has @Position(0) name, @Position(1) age, and @Position(2) salary,
+        // so Child should expose Child(String name, int age, long salary, String dept). The executable
+        // model previously omitted the inherited fields, generating only Child(String dept), which
+        // failed to compile the 'new Child("Mario", 40, 50L, "Sales")' consequent.
+        // Note that in case of non-exec-model, a generated constructor arg order doesn't respect @Position,
+        // which means non-deterministic. So this test is only for exec-model.
+        String str =
+                "package org.test;\n" +
+                "import " + PositionalParent.class.getCanonicalName() + ";\n" +
+                "import " + Result.class.getCanonicalName() + ";\n" +
+                "declare PositionalParent end\n" +
+                "declare Child extends PositionalParent\n" +
+                "    dept : String\n" +
+                "end\n" +
+                "rule Init when\n" +
+                "then\n" +
+                "    insert( new Child(\"Mario\", 40, 50L, \"Sales\") );\n" +
+                "end\n" +
+                "rule Check when\n" +
+                "    $c : Child( name == \"Mario\", age == 40, dept == \"Sales\" )\n" +
+                "then\n" +
+                "    insert( new Result($c.getName()) );\n" +
+                "end";
+
+        KieSession ksession = getKieSession(runType, str);
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
+
+        Collection<Result> results = getObjectsIntoList(ksession, Result.class);
+        assertThat(results).hasSize(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo("Mario");
+    }
+
+    @ParameterizedTest
+    @MethodSource("parameters")
+    public void testDeclaredTypeExtendingDeclaredTypeInDifferentPackage(RUN_TYPE runType) {
+        // A declared type that extends a declared type in a DIFFERENT package must generate a
+        // full-argument constructor that includes the inherited fields and forwards them to super(...).
+        // Here Child (com.test.childpkg) extends Parent (com.test.parentpkg), so the consequent
+        // 'new Child("Mario", 40, "Sales")' must compile and the inherited name/age must be populated.
+        String parentDrl =
+                "package com.test.parentpkg;\n" +
+                "declare Parent\n" +
+                "  name : String\n" +
+                "  age : int\n" +
+                "end\n";
+        String childDrl =
+                "package com.test.childpkg;\n" +
+                "import com.test.parentpkg.Parent;\n" +
+                "import " + Result.class.getCanonicalName() + ";\n" +
+                "declare Child extends Parent\n" +
+                "  dept : String\n" +
+                "end\n" +
+                "rule Init when\n" +
+                "then insert( new Child(\"Mario\", 40, \"Sales\") ); end\n" +
+                "rule Chk when\n" +
+                "  Child( name == \"Mario\", age == 40, dept == \"Sales\" )\n" +
+                "then insert( new Result(\"ok\") ); end";
+        KieSession ksession = getKieSession(runType, parentDrl, childDrl);
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
+    }
+
+    @ParameterizedTest
+    @MethodSource("parameters")
+    public void testDeclaredExtendsAmbiguousSimpleNameResolvedByImport(RUN_TYPE runType) {
+        // Two packages declare a type with the same simple name (Base). The child explicitly imports
+        // one of them, so its 'extends Base' must resolve to that package's Base - not to another
+        // package's same-named declaration. Here Sub imports b.pkg.Base, whose only field is 'city',
+        // so the constructor is Sub(String city, String dept). Resolving to a.pkg.Base (name/age)
+        // instead would make the consequent 'new Sub("NYC", "Sales")' fail to compile. Runs under both
+        // engines: the legacy path already resolved this correctly; exec-model (#6782) previously
+        // matched the first same-named declaration found while scanning packages.
+        String aBaseDrl =
+                "package a.pkg;\n" +
+                "declare Base\n" +
+                "  name : String\n" +
+                "  age : int\n" +
+                "end\n";
+        String bBaseDrl =
+                "package b.pkg;\n" +
+                "declare Base\n" +
+                "  city : String\n" +
+                "end\n";
+        String subDrl =
+                "package sub;\n" +
+                "import b.pkg.Base;\n" +
+                "import " + Result.class.getCanonicalName() + ";\n" +
+                "declare Sub extends Base\n" +
+                "  dept : String\n" +
+                "end\n" +
+                "rule Init when\n" +
+                "then insert( new Sub(\"NYC\", \"Sales\") ); end\n" +
+                "rule Chk when\n" +
+                "  Sub( city == \"NYC\", dept == \"Sales\" )\n" +
+                "then insert( new Result(\"ok\") ); end";
+        KieSession ksession = getKieSession(runType, aBaseDrl, bBaseDrl, subDrl);
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
+    }
+
+    @ParameterizedTest
+    @MethodSource("parametersPatternOnly")
+    public void testExtendPojoWithoutPositionUsesNoArgSuper(RUN_TYPE runType) {
+        // Executable-model regression for #6779: a declared type extending a Java class that has NO
+        // @Position fields must not pull the superclass's instance fields into the generated
+        // constructor - doing so would emit a super(...) call with no matching superclass constructor
+        // and fail to compile ("The constructor Child(String) is undefined"). Only the declared type's
+        // own fields are constructor parameters, and a no-arg super() is used. PlainParent has a single
+        // (unannotated) field and only a no-arg constructor. (Exec-model codegen only; the classic
+        // compiler handles declared-extends-POJO via a different path.)
+        String str =
+                "package org.test;\n" +
+                "import " + PlainParent.class.getCanonicalName() + ";\n" +
+                "import " + Result.class.getCanonicalName() + ";\n" +
+                "declare Child extends PlainParent\n" +
+                "    dept : String\n" +
+                "end\n" +
+                "rule Init when\n" +
+                "then\n" +
+                "    insert( new Child(\"Sales\") );\n" +
+                "end\n" +
+                "rule Check when\n" +
+                "    $c : Child( dept == \"Sales\" )\n" +
+                "then\n" +
+                "    insert( new Result($c.getDept()) );\n" +
+                "end";
+
+        KieSession ksession = getKieSession(runType, str);
+        assertThat(ksession.fireAllRules()).isEqualTo(2);
+
+        Collection<Result> results = getObjectsIntoList(ksession, Result.class);
+        assertThat(results).hasSize(1);
+        assertThat(results.iterator().next().getValue()).isEqualTo("Sales");
     }
 
     @ParameterizedTest

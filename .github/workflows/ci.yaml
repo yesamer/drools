@@ -21,29 +21,46 @@ name: 'CI :: Build'
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, closed]
+    types: [opened, synchronize, reopened]
     branches: [main]
+    paths-ignore:
+      - 'LICENSE'
+      - '**/.gitignore'
+      - '**.md'
+      - '**.adoc'
+      - '*.txt'
+      - 'docsimg/**'
+      - '.ci/jenkins/**'
   push:
     branches: [main]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
 
   build:
     if: github.event.action != 'closed'
-    name: '${{ matrix.os }}, Java ${{ matrix.java }}'
+    name: 'CI :: Build (Java ${{ matrix.java }}) / ${{ matrix.os }}'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os:   [ubuntu-latest, macos-latest, windows-latest]
         java: [17, 21]
+        # macos and windows temporarily excluded
+        # due to Docker-dependent tests introduced by the kogito-runtimes merge
+        # failing on non-Linux runners. Re-enable once resolved.
         exclude:
           - os: windows-latest
             java: 17
+          - os: windows-latest
+            java: 21
+          - os: macos-latest
+            java: 17
+          - os: macos-latest
+            java: 21
 
     steps:
       - name: 'SETUP :: Set paths for temporary files'
@@ -58,6 +75,13 @@ jobs:
           touch "${{ runner.temp }}/maven-pl-affected.txt"
           touch "${{ runner.temp }}/maven-pl-upstream.txt"
           touch "${{ runner.temp }}/maven-pl-changed.txt"
+
+      - name: 'SETUP :: Free disk space (Ubuntu)'
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          df -h
 
       - name: 'SETUP :: Enable long file paths (Windows)'
         if: runner.os == 'Windows'
@@ -75,7 +99,7 @@ jobs:
         with:
           ref: ${{ github.base_ref }}
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         name: 'SETUP :: Java ${{ matrix.java }}'
         with:
           java-version: ${{ matrix.java }}
@@ -91,6 +115,16 @@ jobs:
           echo "3c9fb9ac5823ae5ab9d136dec08b896e2a0f6f6b313689b21f43c511b7c34b85  jbang.zip" | sha256sum -c -
           unzip -q jbang.zip
           echo "${{ github.workspace }}/jbang-0.138.0/bin" >> $GITHUB_PATH
+
+      # The runner image's Maven may be older than the minimum enforced by kie-parent.
+      # Keep the version in sync with version.org.apache.maven in kie-parent/pom.xml.
+      - name: 'SETUP :: Install Maven'
+        shell: bash
+        run: |
+          curl -sfL https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.16/apache-maven-3.9.16-bin.zip -o "${{ runner.temp }}/maven.zip"
+          echo "ed41650d42485cfc243fad22158caf9cbb5dc408ce7a09ddb94dd42a019de929ca43065bfa450612cf12bf78b5cafa3884b96c090de326ff590448c933454af3  ${{ runner.temp }}/maven.zip" | sha512sum -c -
+          unzip -q "${{ runner.temp }}/maven.zip" -d "${{ runner.temp }}"
+          echo "${{ runner.temp }}/apache-maven-3.9.16/bin" >> $GITHUB_PATH
 
       - name: 'SETUP :: Block apache.snapshots Maven repository'
         shell: bash
@@ -168,12 +202,12 @@ jobs:
         run: |
           pl=$(paste -sd, "$MAVEN_PL_AFFECTED_FILE")
           [ -z "$pl" ] && echo "No affected modules. Skipping." && exit 0
-          mvn --batch-mode --no-transfer-progress -fae -Dsurefire.redirectTestOutputToFile=true -pl "$pl" install
+          mvn --batch-mode --no-transfer-progress -fae -Dsurefire.redirectTestOutputToFile=true -Dfull -Dreproducible -pl "$pl" install
 
       - name: "CI :: BUILD :: Full${{ github.event_name == 'pull_request' && ' (skipped)' || '' }}"
         if: github.event_name == 'push'
         shell: bash
-        run: mvn --batch-mode --no-transfer-progress -fae -Dsurefire.redirectTestOutputToFile=true install
+        run: mvn --batch-mode --no-transfer-progress -fae -Dsurefire.redirectTestOutputToFile=true -Dfull -Dreproducible install
 
       - name: 'SUMMARY :: Publish'
         if: always()
@@ -187,3 +221,19 @@ jobs:
           MAVEN_PL_UPSTREAM=$(paste -sd, "$MAVEN_PL_UPSTREAM_FILE" 2>/dev/null || true) \
           MAVEN_PL_CHANGED=$(paste -sd, "$MAVEN_PL_CHANGED_FILE" 2>/dev/null || true) \
           jbang script/ci/CiSummary.java
+
+      - name: Upload Build logs
+        uses: actions/upload-artifact@v7
+        if: ${{ always() }}
+        with:
+          name: build-logs_${{ matrix.os }}_java-${{ matrix.java }}
+          path: '**/build.log'
+
+      - name: Upload Build Compare
+        uses: actions/upload-artifact@v7
+        if: ${{ always() }}
+        with:
+          name: build-compare_${{ matrix.os }}_java-${{ matrix.java }}
+          path: |
+            **/*.buildcompare
+            **/*.buildinfo

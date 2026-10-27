@@ -18,10 +18,14 @@
 #
 
 github:
-  description: Drools is a rule engine, DMN engine and complex event processing (CEP) engine for Java
+  description: Apache KIE (Knowledge Is Everything) is the home of Drools, OptaPlanner, jBPM, and Kogito.
   homepage: https://kie.apache.org
   labels:
     - apache
+    - drools
+    - optaplanner
+    - jbpm
+    - kogito
     - java
     - rule-engine
     - dmn
@@ -41,3 +45,7 @@ github:
         - root
       restrict_deletion: true
       restrict_force_push: true
+  enabled_merge_buttons:
+    squash: true
+    merge: false
+    rebase: false

@@ -67,20 +67,23 @@ import static org.drools.persistence.util.DroolsPersistenceUtil.createEnvironmen
 import static org.drools.persistence.util.DroolsPersistenceUtil.setupWithPoolingDataSource;
 
 public class TimerAndCalendarTest {
-    
+
     private Map<String, Object> context;
+    private final org.drools.persistence.DeserializationFilterTestSupport filterSupport = new org.drools.persistence.DeserializationFilterTestSupport();
 
     public static Stream<String> parameters() {
     	return Stream.of(OPTIMISTIC_LOCKING, PESSIMISTIC_LOCKING);
     };
-    
+
     @BeforeEach
     public void before() throws Exception {
+        filterSupport.setUp("org.drools.test.TestEvent");
         context = setupWithPoolingDataSource(DROOLS_PERSISTENCE_UNIT_NAME);
     }
 
     @AfterEach
     public void after() throws Exception {
+        filterSupport.tearDown();
         cleanUp(context);
     }
 
@@ -295,7 +298,7 @@ public class TimerAndCalendarTest {
                 "global java.util.List list; " +
 
                 "rule R1\n" +
-                "    timer ( int: 5s )\n" +
+                "    timer ( int: 3s )\n" +
                 "when\n" +
                 "    $s : String( )\n" +
                 "then\n" +
@@ -321,7 +324,7 @@ public class TimerAndCalendarTest {
 
         assertThat(list.size()).isEqualTo(0);
 
-        Thread.sleep(5000);
+        Thread.sleep(3000);
 
         // A new kbase without the timer's activated rule
         InternalKnowledgeBase kbase2  = KnowledgeBaseFactory.newKnowledgeBase();

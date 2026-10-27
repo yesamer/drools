@@ -28,7 +28,7 @@ import org.drools.core.common.InternalAgendaGroup;
 import org.drools.core.common.Memory;
 import org.drools.core.common.ReteEvaluator;
 import org.drools.core.phreak.RuleAgendaItem;
-import org.drools.core.util.AbstractLinkedListNode;
+import org.drools.base.util.AbstractLinkedListNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +62,10 @@ public class PathMemory extends AbstractLinkedListNode<Memory>
     }
 
     protected boolean isRuleDataDriven(ReteEvaluator reteEvaluator, RuleImpl rule) {
+        // Data-driven evaluation in sequential mode causes NPE and incorrect results (incubator-kie#7209)
+        if (reteEvaluator != null && reteEvaluator.isSequential()) {
+            return false;
+        }
         return rule != null &&
                (rule.isDataDriven() || (reteEvaluator != null && reteEvaluator.getRuleSessionConfiguration()
                        .getForceEagerActivationFilter().accept(rule)));

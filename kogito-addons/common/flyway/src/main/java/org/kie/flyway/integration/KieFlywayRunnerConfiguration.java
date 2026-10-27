@@ -1,0 +1,62 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.kie.flyway.integration;
+
+import java.util.Collection;
+
+import org.kie.api.annotations.KieProperty;
+
+public class KieFlywayRunnerConfiguration {
+
+    @KieProperty(type = "boolean", defaultValue = "false", allowedValues = "true,false")
+    public static final String KIE_FLYWAY_ENABLED_PROPERTY = "kie.flyway.enabled";
+
+    @KieProperty(type = "boolean", defaultValue = "true", allowedValues = "true,false")
+    public static final String KIE_FLYWAY_OUT_OF_ORDER_PROPERTY = "kie.flyway.out-of-order";
+
+    @KieProperty(type = "boolean", defaultValue = "true", allowedValues = "true,false")
+    public static final String KIE_FLYWAY_MODULE_ENABLED_PROPERTY = "kie.flyway.modules.<module-name>.enabled";
+
+    private final boolean enabled;
+    private final Collection<KieFlywayNamedModule> modules;
+    private final boolean outOfOrder;
+
+    public KieFlywayRunnerConfiguration(boolean enabled, Collection<KieFlywayNamedModule> modules) {
+        this(enabled, modules, true);
+    }
+
+    public KieFlywayRunnerConfiguration(boolean enabled, Collection<KieFlywayNamedModule> modules, boolean outOfOrder) {
+        this.enabled = enabled;
+        this.modules = modules;
+        this.outOfOrder = outOfOrder;
+    }
+
+    public boolean isOutOfOrder() {
+        return outOfOrder;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public Collection<KieFlywayNamedModule> getModules() {
+        return modules;
+    }
+}

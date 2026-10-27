@@ -41,7 +41,7 @@ import org.drools.core.reteoo.TupleFactory;
 import org.drools.core.reteoo.TupleImpl;
 import org.drools.core.reteoo.TupleMemory;
 import org.drools.core.util.AbstractHashTable;
-import org.drools.core.util.FastIterator;
+import org.drools.base.util.FastIterator;
 import org.kie.api.runtime.rule.FactHandle;
 
 import static org.drools.core.phreak.PhreakNodeOperations.doUpdatesReorderLeftMemory;
@@ -379,7 +379,7 @@ public class PhreakAccumulateNode {
                         TupleImpl temp = match.getHandleNext();
                         match.reAddRight();
                         match = temp;
-                        isDirty = accumulate.hasRequiredDeclarations();
+                        isDirty |= accumulate.hasRequiredDeclarations();
                     }
                 } else if (match != null && match.getRightParent() == rightTuple) {
                     TupleImpl temp = match.getHandleNext();
@@ -391,7 +391,7 @@ public class PhreakAccumulateNode {
                     // and the accumulate does not support the reverse operation, then the whole
                     // result is dirty (since removeMatch above is not recalculating the total)
                     // and we need to do this later
-                    isDirty = !reversed;
+                    isDirty |= !reversed;
                 }
                 // else do nothing, was false before and false now.
             }
