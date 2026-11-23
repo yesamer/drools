@@ -47,4 +47,35 @@ class EndsWithFunctionTest {
         FunctionTestUtil.assertResult(endsWithFunction.invoke("test", "estt"), false);
         FunctionTestUtil.assertResult(endsWithFunction.invoke("test", "tt"), false);
     }
+
+    @Test
+    void invokeEmptyString() {
+        FunctionTestUtil.assertResult(endsWithFunction.invoke("", ""), true);
+        FunctionTestUtil.assertResult(endsWithFunction.invoke("", "test"), false);
+        FunctionTestUtil.assertResult(endsWithFunction.invoke("test", ""), true);
+    }
+
+    @Test
+    void invokeCaseSensitive() {
+        // FEEL ends with() is case-sensitive
+        FunctionTestUtil.assertResult(endsWithFunction.invoke("test", "ST"), false);
+        FunctionTestUtil.assertResult(endsWithFunction.invoke("TEST", "st"), false);
+        FunctionTestUtil.assertResult(endsWithFunction.invoke("Test", "Test"), true);
+    }
+
+    @Test
+    void invokeNonAsciiMatch() {
+        // BMP non-ASCII: é is a single code point / char
+        FunctionTestUtil.assertResult(endsWithFunction.invoke("café", "é"), true);
+        FunctionTestUtil.assertResult(endsWithFunction.invoke("café", "E"), false);
+        FunctionTestUtil.assertResult(endsWithFunction.invoke("café", "caf"), false);
+    }
+
+    @Test
+    void invokeSurrogatePairMatch() {
+        // supplementary characters (emoji): each is a surrogate pair in UTF-16
+        FunctionTestUtil.assertResult(endsWithFunction.invoke("👋🌍🔥", "🔥"), true);
+        FunctionTestUtil.assertResult(endsWithFunction.invoke("👋🌍🔥", "🌍"), false);
+        FunctionTestUtil.assertResult(endsWithFunction.invoke("👋🌍🔥", "xyz"), false);
+    }
 }

@@ -40,7 +40,41 @@ class SubstringAfterFunctionTest {
     }
 
     @Test
+    void invokeMatchExistsAtStart() {
+        // match at index 0: everything after "foo" is "bar"
+        FunctionTestUtil.assertResult(substringAfterFunction.invoke("foobar", "foo"), "bar");
+    }
+
+    @Test
+    void invokeMatchExistsAtEnd() {
+        // match at the very end: nothing follows "bar", so result is ""
+        // this hits the index >= 0 hit-path but produces an empty string
+        FunctionTestUtil.assertResult(substringAfterFunction.invoke("foobar", "bar"), "");
+    }
+
+    @Test
     void invokeMatchNotExists() {
         FunctionTestUtil.assertResult(substringAfterFunction.invoke("foobar", "oook"), "");
+    }
+
+    @Test
+    void invokeEmptyMatch() {
+        // empty match always found at index 0: entire string is returned
+        FunctionTestUtil.assertResult(substringAfterFunction.invoke("hello", ""), "hello");
+        FunctionTestUtil.assertResult(substringAfterFunction.invoke("", ""), "");
+    }
+
+    @Test
+    void invokeEmptyString() {
+        // non-empty match against empty string: not found, returns ""
+        FunctionTestUtil.assertResult(substringAfterFunction.invoke("", "x"), "");
+    }
+
+    @Test
+    void invokeUnicode() {
+        // emoji / surrogate pairs — match found
+        FunctionTestUtil.assertResult(substringAfterFunction.invoke("👋🌍🔥", "🌍"), "🔥");
+        // emoji / surrogate pairs — match not found
+        FunctionTestUtil.assertResult(substringAfterFunction.invoke("👋🌍🔥", "xyz"), "");
     }
 }

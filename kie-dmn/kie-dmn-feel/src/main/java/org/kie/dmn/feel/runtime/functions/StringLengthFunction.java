@@ -23,7 +23,6 @@ import java.math.BigDecimal;
 import org.kie.dmn.api.feel.runtime.events.FEELEvent.Severity;
 import org.kie.dmn.feel.runtime.FEELNumberFunction;
 import org.kie.dmn.feel.runtime.events.InvalidParametersEvent;
-import org.kie.dmn.feel.util.NumberEvalHelper;
 
 public class StringLengthFunction
         extends BaseFEELFunction implements FEELNumberFunction {
@@ -37,8 +36,7 @@ public class StringLengthFunction
     public FEELFnResult<BigDecimal> invoke(@ParameterName("string") String string) {
         if ( string == null ) {
             return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "string", "cannot be null"));
-        } else {
-            return FEELFnResult.ofResult(NumberEvalHelper.getBigDecimalOrNull(string.codePointCount(0, string.length())));
         }
+        return FEELFnResult.ofResult(BigDecimal.valueOf(string.codePointCount(0, string.length())));
     }
 }

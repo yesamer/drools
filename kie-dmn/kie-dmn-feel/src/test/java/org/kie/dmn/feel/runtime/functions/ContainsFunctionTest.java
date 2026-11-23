@@ -45,4 +45,38 @@ class ContainsFunctionTest {
         FunctionTestUtil.assertResult(containsFunction.invoke("test", "u"), false);
         FunctionTestUtil.assertResult(containsFunction.invoke("test", "esty"), false);
     }
+
+    @Test
+    void invokeEmptyMatch() {
+        // empty match string always matches per String.contains() contract
+        FunctionTestUtil.assertResult(containsFunction.invoke("test", ""), true);
+        FunctionTestUtil.assertResult(containsFunction.invoke("", ""), true);
+    }
+
+    @Test
+    void invokeEmptyString() {
+        // non-empty match against empty string is always false
+        FunctionTestUtil.assertResult(containsFunction.invoke("", "x"), false);
+    }
+
+    @Test
+    void invokeCaseSensitive() {
+        // FEEL contains() is case-sensitive
+        FunctionTestUtil.assertResult(containsFunction.invoke("test", "TEST"), false);
+        FunctionTestUtil.assertResult(containsFunction.invoke("TEST", "test"), false);
+    }
+
+    @Test
+    void invokeNonAsciiMatch() {
+        // BMP non-ASCII: é is a single code point
+        FunctionTestUtil.assertResult(containsFunction.invoke("café", "é"), true);
+        FunctionTestUtil.assertResult(containsFunction.invoke("café", "E"), false);
+    }
+
+    @Test
+    void invokeSurrogatePairMatch() {
+        // supplementary characters (emoji): each is a surrogate pair in UTF-16
+        FunctionTestUtil.assertResult(containsFunction.invoke("👋🌍🔥", "🌍"), true);
+        FunctionTestUtil.assertResult(containsFunction.invoke("👋🌍🔥", "xyz"), false);
+    }
 }

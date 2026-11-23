@@ -27,6 +27,9 @@ public class StartsWithFunction
 
     public static final StartsWithFunction INSTANCE = new StartsWithFunction();
 
+    private static final FEELFnResult<Boolean> RESULT_TRUE  = FEELFnResult.ofResult(Boolean.TRUE);
+    private static final FEELFnResult<Boolean> RESULT_FALSE = FEELFnResult.ofResult(Boolean.FALSE);
+
     private StartsWithFunction() {
         super( "starts with" );
     }
@@ -38,8 +41,8 @@ public class StartsWithFunction
         if ( match == null ) {
             return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "match", "cannot be null"));
         }
-        
-        return FEELFnResult.ofResult( string.startsWith( match ) );
+
+        return string.startsWith( match ) ? RESULT_TRUE : RESULT_FALSE;
     }
 
 }

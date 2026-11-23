@@ -27,6 +27,8 @@ public class SubstringAfterFunction
 
     public static final SubstringAfterFunction INSTANCE = new SubstringAfterFunction();
 
+    private static final FEELFnResult<String> RESULT_EMPTY = FEELFnResult.ofResult( "" );
+
     private SubstringAfterFunction() {
         super( "substring after" );
     }
@@ -38,12 +40,12 @@ public class SubstringAfterFunction
         if ( match == null ) {
             return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "match", "cannot be null"));
         }
-        
+
         int index = string.indexOf( match );
-        if( index >= 0 ) {
-            return FEELFnResult.ofResult( string.substring( index+match.length() ) );
+        if ( index >= 0 ) {
+            return FEELFnResult.ofResult( string.substring( index + match.length() ) );
         } else {
-            return FEELFnResult.ofResult( "" );
+            return RESULT_EMPTY;
         }
     }
 

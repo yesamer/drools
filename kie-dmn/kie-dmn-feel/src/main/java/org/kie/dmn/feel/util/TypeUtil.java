@@ -76,10 +76,10 @@ public final class TypeUtil {
     }
 
     public static String formatValue(final Object val, final boolean wrapForCodeUsage) {
-        if (val instanceof String) {
-            return formatString(val.toString(), wrapForCodeUsage);
-        } else if (val instanceof LocalDate) {
-            return formatDate((LocalDate) val, wrapForCodeUsage);
+        if (val instanceof String string) {
+            return formatString(string, wrapForCodeUsage);
+        } else if (val instanceof LocalDate localDate) {
+            return formatDate(localDate, wrapForCodeUsage);
         } else if (val instanceof LocalTime || val instanceof OffsetTime) {
             return formatTimeString(TimeFunction.FEEL_TIME.format((TemporalAccessor) val), wrapForCodeUsage);
         } else if (val instanceof ZoneTime zoneTime) {
@@ -87,26 +87,24 @@ public final class TypeUtil {
         } else if (val instanceof LocalDateTime || val instanceof OffsetDateTime) {
             return formatDateTimeString(DateAndTimeFunction.FEEL_DATE_TIME.format((TemporalAccessor) val),
                                         wrapForCodeUsage);
-        } else if (val instanceof FormattedZonedDateTime) {
-            return formatDateTimeString(val.toString(), wrapForCodeUsage);
-        } else if (val instanceof ZonedDateTime) {
-            TemporalAccessor ta = (TemporalAccessor) val;
-            ZoneId zone = ta.query(TemporalQueries.zone());
+        } else if (val instanceof FormattedZonedDateTime formattedZonedDateTime) {
+            return formatDateTimeString(formattedZonedDateTime.toString(), wrapForCodeUsage);
+        } else if (val instanceof ZonedDateTime zonedDateTime) {
+            ZoneId zone = zonedDateTime.getZone();
             if (!(zone instanceof ZoneOffset)) {
                 // it is a ZoneRegion
-                return formatDateTimeString(DateAndTimeFunction.REGION_DATETIME_FORMATTER.format((TemporalAccessor) val), wrapForCodeUsage);
+                return formatDateTimeString(DateAndTimeFunction.REGION_DATETIME_FORMATTER.format(zonedDateTime), wrapForCodeUsage);
             } else {
-                return formatDateTimeString(DateAndTimeFunction.FEEL_DATE_TIME.format((TemporalAccessor) val),
+                return formatDateTimeString(DateAndTimeFunction.FEEL_DATE_TIME.format(zonedDateTime),
                                             wrapForCodeUsage);
             }
-        } else if (val instanceof Duration) {
-            return formatDuration((Duration) val, wrapForCodeUsage);
-        } else if (val instanceof ChronoPeriod) {
-            return formatPeriod((ChronoPeriod) val, wrapForCodeUsage);
-        } else if (val instanceof TemporalAccessor) {
-            TemporalAccessor ta = (TemporalAccessor) val;
+        } else if (val instanceof Duration duration) {
+            return formatDuration(duration, wrapForCodeUsage);
+        } else if (val instanceof ChronoPeriod chronoPeriod) {
+            return formatPeriod(chronoPeriod, wrapForCodeUsage);
+        } else if (val instanceof TemporalAccessor ta) {
             if (ta.query(TemporalQueries.localDate()) == null && ta.query(TemporalQueries.localTime()) != null && ta.query(TemporalQueries.zoneId()) != null) {
-                return formatTimeString(TimeFunction.FEEL_TIME.format((TemporalAccessor) val), wrapForCodeUsage);
+                return formatTimeString(TimeFunction.FEEL_TIME.format(ta), wrapForCodeUsage);
             } else {
                 return String.valueOf(val);
             }
@@ -156,13 +154,13 @@ public final class TypeUtil {
     public static String formatList(final List list, final boolean wrapDateTimeValuesInFunctions) {
         final StringBuilder sb = new StringBuilder();
         sb.append("[ ");
-        int count = 0;
+        boolean first = true;
         for (final Object val : list) {
-            if (count > 0) {
+            if (!first) {
                 sb.append(", ");
             }
             sb.append(formatValue(val, wrapDateTimeValuesInFunctions));
-            count++;
+            first = false;
         }
         if (!list.isEmpty()) {
             sb.append(" ");
@@ -174,16 +172,16 @@ public final class TypeUtil {
     public static String formatContext(final Map context, final boolean wrapDateTimeValuesInFunctions) {
         final StringBuilder sb = new StringBuilder();
         sb.append("{ ");
-        int count = 0;
+        boolean first = true;
         for (final Map.Entry<Object, Object> val : (Set<Map.Entry<Object, Object>>) context.entrySet()) {
-            if (count > 0) {
+            if (!first) {
                 sb.append(", ");
             }
             // keys should always be strings, so do not call recursivelly to avoid the "
             sb.append(val.getKey());
             sb.append(" : ");
             sb.append(formatValue(val.getValue(), wrapDateTimeValuesInFunctions));
-            count++;
+            first = false;
         }
         if (!context.isEmpty()) {
             sb.append(" ");
@@ -194,32 +192,36 @@ public final class TypeUtil {
 
     public static String formatRange(final Range val, final boolean wrapDateTimeValuesInFunctions) {
         final StringBuilder sb = new StringBuilder();
+        final Object lowEndPoint = val.getLowEndPoint();
+        final Object highEndPoint = val.getHighEndPoint();
+        final Range.RangeBoundary lowBoundary = val.getLowBoundary();
+        final Range.RangeBoundary highBoundary = val.getHighBoundary();
         if (val.isWithUndefined()) {
             sb.append("( ");
-            if (val.getLowEndPoint() instanceof UndefinedValueComparable) {
-                if (val.getHighBoundary() == Range.RangeBoundary.OPEN) {
+            if (lowEndPoint instanceof UndefinedValueComparable) {
+                if (highBoundary == Range.RangeBoundary.OPEN) {
                     sb.append(LT.symbol);
                 } else {
                     sb.append(LTE.symbol);
                 }
                 sb.append(" ");
-                sb.append(formatValue(val.getHighEndPoint(), wrapDateTimeValuesInFunctions));
-            } else if (val.getHighEndPoint() instanceof UndefinedValueComparable) {
-                if (val.getLowBoundary() == Range.RangeBoundary.OPEN) {
+                sb.append(formatValue(highEndPoint, wrapDateTimeValuesInFunctions));
+            } else if (highEndPoint instanceof UndefinedValueComparable) {
+                if (lowBoundary == Range.RangeBoundary.OPEN) {
                     sb.append(GT.symbol);
                 } else {
                     sb.append(GTE.symbol);
                 }
                 sb.append(" ");
-                sb.append(formatValue(val.getLowEndPoint(), wrapDateTimeValuesInFunctions));
+                sb.append(formatValue(lowEndPoint, wrapDateTimeValuesInFunctions));
             }
             sb.append(" )");
         } else {
-            sb.append(val.getLowBoundary() == Range.RangeBoundary.OPEN ? "( " : "[ ");
-            sb.append(formatValue(val.getLowEndPoint(), wrapDateTimeValuesInFunctions));
+            sb.append(lowBoundary == Range.RangeBoundary.OPEN ? "( " : "[ ");
+            sb.append(formatValue(lowEndPoint, wrapDateTimeValuesInFunctions));
             sb.append(" .. ");
-            sb.append(formatValue(val.getHighEndPoint(), wrapDateTimeValuesInFunctions));
-            sb.append(val.getHighBoundary() == Range.RangeBoundary.OPEN ? " )" : " ]");
+            sb.append(formatValue(highEndPoint, wrapDateTimeValuesInFunctions));
+            sb.append(highBoundary == Range.RangeBoundary.OPEN ? " )" : " ]");
         }
         return sb.toString();
     }

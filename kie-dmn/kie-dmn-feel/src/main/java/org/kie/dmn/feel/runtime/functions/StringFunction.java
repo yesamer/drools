@@ -28,6 +28,7 @@ public class StringFunction
         extends BaseFEELFunction implements FEELStringFunction {
 
     public static final StringFunction INSTANCE = new StringFunction();
+    private static final FEELFnResult<String> RESULT_NULL = FEELFnResult.ofResult(null);
 
     private StringFunction() {
         super(FEELConversionFunctionNames.STRING);
@@ -35,7 +36,9 @@ public class StringFunction
 
     public FEELFnResult<String> invoke(@ParameterName("from") Object val) {
         if ( val == null ) {
-            return FEELFnResult.ofResult( null );
+            return RESULT_NULL;
+        } else if (val instanceof String) {
+            return FEELFnResult.ofResult((String) val);
         } else {
             return FEELFnResult.ofResult( TypeUtil.formatValue(val, false) );
         }

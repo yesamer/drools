@@ -86,4 +86,39 @@ class SubstringFunctionTest {
         FunctionTestUtil.assertResult(substringFunction.invoke("test", -2, 1), "s");
         FunctionTestUtil.assertResult(substringFunction.invoke("test", -3, 2), "es");
     }
+
+    @Test
+    void invokeWithSurrogatePairsAndEdgeCases() {
+        // Surrogate pairs (Emojis: 2 chars per code point)
+        String emojis = "👋🌍🔥🚀"; // 4 code points, 8 chars
+        FunctionTestUtil.assertResult(substringFunction.invoke(emojis, 1), "👋🌍🔥🚀");
+        FunctionTestUtil.assertResult(substringFunction.invoke(emojis, 2), "🌍🔥🚀");
+        FunctionTestUtil.assertResult(substringFunction.invoke(emojis, 2, 2), "🌍🔥");
+        FunctionTestUtil.assertResult(substringFunction.invoke(emojis, -2), "🔥🚀");
+        FunctionTestUtil.assertResult(substringFunction.invoke(emojis, -3, 2), "🌍🔥");
+
+        // Mixed ASCII and Emojis
+        String mixed = "A👋B🌍C"; // 5 code points
+        FunctionTestUtil.assertResult(substringFunction.invoke(mixed, 2, 3), "👋B🌍");
+        FunctionTestUtil.assertResult(substringFunction.invoke(mixed, -4, 2), "👋B");
+
+        // Length exceeding string bounds (should safely limit to end of string)
+        FunctionTestUtil.assertResult(substringFunction.invoke("test", 2, 100), "est");
+        FunctionTestUtil.assertResult(substringFunction.invoke(emojis, 2, 50), "🌍🔥🚀");
+    }
+
+    @Test
+    void invokeWithBigDecimalAndDoubleNumbers() {
+        // FEEL default numeric type is BigDecimal
+        java.math.BigDecimal startDecimal = java.math.BigDecimal.valueOf(2);
+        java.math.BigDecimal lengthDecimal = java.math.BigDecimal.valueOf(2);
+        FunctionTestUtil.assertResult(substringFunction.invoke("test", startDecimal), "est");
+        FunctionTestUtil.assertResult(substringFunction.invoke("test", startDecimal, lengthDecimal), "es");
+
+        // Double types
+        Double startDouble = 2.0;
+        Double lengthDouble = 2.0;
+        FunctionTestUtil.assertResult(substringFunction.invoke("test", startDouble), "est");
+        FunctionTestUtil.assertResult(substringFunction.invoke("test", startDouble, lengthDouble), "es");
+    }
 }

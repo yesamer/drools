@@ -27,6 +27,9 @@ public class EndsWithFunction
 
     public static final EndsWithFunction INSTANCE = new EndsWithFunction();
 
+    private static final FEELFnResult<Boolean> RESULT_TRUE  = FEELFnResult.ofResult(Boolean.TRUE);
+    private static final FEELFnResult<Boolean> RESULT_FALSE = FEELFnResult.ofResult(Boolean.FALSE);
+
     private EndsWithFunction() {
         super( "ends with" );
     }
@@ -38,8 +41,8 @@ public class EndsWithFunction
         if ( match == null ) {
             return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "match", "cannot be null"));
         }
-        
-        return FEELFnResult.ofResult( string.endsWith( match ) );
+
+        return string.endsWith( match ) ? RESULT_TRUE : RESULT_FALSE;
     }
 
 }

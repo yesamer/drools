@@ -19,7 +19,6 @@
 package org.kie.dmn.feel.runtime.functions;
 
 import java.util.List;
-import java.util.StringJoiner;
 
 import org.kie.dmn.api.feel.runtime.events.FEELEvent.Severity;
 import org.kie.dmn.feel.runtime.FEELStringFunction;
@@ -40,17 +39,37 @@ public class StringJoinFunction extends BaseFEELFunction implements FEELStringFu
         if (list.isEmpty()) {
             return FEELFnResult.ofResult(""); // If list is empty, the result is the empty string
         }
-        StringJoiner sj = new StringJoiner(delimiter != null ? delimiter : ""); // If delimiter is null, the string elements are joined without a separator
-        for (Object element : list) {
-            if (element == null) {
-                continue; // Null elements in the list parameter are ignored.
-            } else if (element instanceof CharSequence) {
-                sj.add((CharSequence) element);
+        // Single-element fast-path: skip StringBuilder entirely — the result is just the element.
+        if (list.size() == 1) {
+            Object only = list.get(0);
+            if (only == null) {
+                return FEELFnResult.ofResult(""); // single null element → empty string (null ignored)
+            } else if (only instanceof String) {
+                return FEELFnResult.ofResult((String) only);
+            } else if (only instanceof CharSequence) {
+                return FEELFnResult.ofResult(only.toString());
             } else {
                 return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "list", "contains an element which is not a string"));
             }
         }
-        return FEELFnResult.ofResult(sj.toString());
+        // Multi-element path: StringBuilder avoids the prefix/suffix tracking overhead of StringJoiner.
+        String sep = delimiter != null ? delimiter : ""; // If delimiter is null, the string elements are joined without a separator
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (Object element : list) {
+            if (element == null) {
+                continue; // Null elements in the list parameter are ignored.
+            } else if (element instanceof CharSequence) {
+                if (!first) {
+                    sb.append(sep);
+                }
+                sb.append((CharSequence) element);
+                first = false;
+            } else {
+                return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "list", "contains an element which is not a string"));
+            }
+        }
+        return FEELFnResult.ofResult(sb.toString());
     }
 
     public FEELFnResult<String> invoke(@ParameterName("list") List<?> list) {

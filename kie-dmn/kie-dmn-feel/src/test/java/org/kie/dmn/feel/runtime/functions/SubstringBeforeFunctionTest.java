@@ -35,12 +35,42 @@ class SubstringBeforeFunctionTest {
 
     @Test
     void invokeMatchExists() {
-        FunctionTestUtil.assertResult(substringBeforeFunction.invoke("foobar", "ob"), "fo");
-        FunctionTestUtil.assertResult(substringBeforeFunction.invoke("foobar", "o"), "f");
+        // normal mid-string match: "foo" precedes "bar"
+        FunctionTestUtil.assertResult(substringBeforeFunction.invoke("foobar", "bar"), "foo");
+        FunctionTestUtil.assertResult(substringBeforeFunction.invoke("foobar", "b"), "foo");
+    }
+
+    @Test
+    void invokeMatchExistsAtStart() {
+        // match at index 0: nothing precedes it, so result is ""
+        // exercises the critical index > 0 (not >= 0) boundary in the implementation
+        FunctionTestUtil.assertResult(substringBeforeFunction.invoke("foobar", "foo"), "");
+        FunctionTestUtil.assertResult(substringBeforeFunction.invoke("foobar", "f"), "");
     }
 
     @Test
     void invokeMatchNotExists() {
-        FunctionTestUtil.assertResult(substringBeforeFunction.invoke("foobar", "oook"), "");
+        FunctionTestUtil.assertResult(substringBeforeFunction.invoke("foobar", "xyz"), "");
+    }
+
+    @Test
+    void invokeEmptyMatch() {
+        // empty match always found at index 0: nothing precedes index 0, returns ""
+        FunctionTestUtil.assertResult(substringBeforeFunction.invoke("hello", ""), "");
+        FunctionTestUtil.assertResult(substringBeforeFunction.invoke("", ""), "");
+    }
+
+    @Test
+    void invokeEmptyString() {
+        // non-empty match against empty string: not found, returns ""
+        FunctionTestUtil.assertResult(substringBeforeFunction.invoke("", "x"), "");
+    }
+
+    @Test
+    void invokeUnicode() {
+        // emoji / surrogate pairs — match found
+        FunctionTestUtil.assertResult(substringBeforeFunction.invoke("👋🌍🔥", "🌍"), "👋");
+        // emoji / surrogate pairs — match not found
+        FunctionTestUtil.assertResult(substringBeforeFunction.invoke("👋🌍🔥", "xyz"), "");
     }
 }

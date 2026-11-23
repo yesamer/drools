@@ -32,6 +32,17 @@ public class NumberEvalHelper {
     public static final Logger LOG = LoggerFactory.getLogger( NumberEvalHelper.class );
 
     public static BigDecimal getBigDecimalOrNull(Object value) {
+        // Integer and Long are the most frequent concrete types at arithmetic/calendar
+        // call sites (e.g. WeekOfYearFunction, Duration arithmetic). Check them first
+        // to avoid traversing the full instanceof chain on every such call.
+        if ( value instanceof Integer ) {
+            return BigDecimal.valueOf( ((Integer) value).longValue() );
+        }
+
+        if ( value instanceof Long ) {
+            return BigDecimal.valueOf( (Long) value );
+        }
+
         if ( value instanceof BigDecimal ) {
             return (BigDecimal) value;
         }
@@ -52,7 +63,10 @@ public class NumberEvalHelper {
         }
 
         if ( value instanceof Number ) {
-            return new BigDecimal( ((Number) value).longValue(), MathContext.DECIMAL128 );
+            // Catch-all for any other Number subtype (Short, Byte, AtomicInteger, ...).
+            // BigDecimal.valueOf(long) uses an internal string cache and is cheaper than
+            // new BigDecimal(longValue, MathContext.DECIMAL128) for most values.
+            return BigDecimal.valueOf( ((Number) value).longValue() );
         }
 
         if ( value instanceof String ) {
@@ -65,6 +79,23 @@ public class NumberEvalHelper {
         }
 
         return null;
+    }
+
+    /**
+     * Primitive overload that avoids autoboxing for call sites that already hold a
+     * {@code long} or {@code int} value (e.g. calendar functions, duration arithmetic).
+     *
+     * <p>Compared to calling {@code getBigDecimalOrNull((Object) longValue)}:
+     * <ul>
+     *   <li>No heap allocation for boxing the primitive.</li>
+     *   <li>No {@code instanceof} checks -- direct {@link BigDecimal#valueOf(long)} call.</li>
+     * </ul>
+     *
+     * @param value the primitive long to convert
+     * @return a {@link BigDecimal} representing {@code value}
+     */
+    public static BigDecimal getBigDecimalOrNull(long value) {
+        return BigDecimal.valueOf(value);
     }
 
     public static Object coerceNumber(Object value) {

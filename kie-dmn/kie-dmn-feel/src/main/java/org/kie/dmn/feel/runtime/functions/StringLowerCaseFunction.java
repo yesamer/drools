@@ -18,6 +18,8 @@
  */
 package org.kie.dmn.feel.runtime.functions;
 
+import java.util.Locale;
+
 import org.kie.dmn.api.feel.runtime.events.FEELEvent.Severity;
 import org.kie.dmn.feel.runtime.FEELStringFunction;
 import org.kie.dmn.feel.runtime.events.InvalidParametersEvent;
@@ -35,7 +37,11 @@ public class StringLowerCaseFunction
         if ( string == null ) {
             return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "string", "cannot be null"));
         } else {
-            return FEELFnResult.ofResult( string.toLowerCase() );
+            // Locale.ROOT ensures locale-independent Unicode casing as required by the FEEL/DMN
+            // specification (matching fn:lower-case() in XPath/XQuery).  The JDK's
+            // toLowerCase(Locale) also returns 'this' when no character changes, avoiding a
+            // String allocation for already-lowercase inputs.
+            return FEELFnResult.ofResult( string.toLowerCase( Locale.ROOT ) );
         }
     }
 }

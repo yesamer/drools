@@ -41,10 +41,17 @@ import org.kie.dmn.feel.runtime.impl.RangeImpl;
 class StringFunctionTest {
 
     private static final StringFunction stringFunction = StringFunction.INSTANCE;
+    private static final FEELFnResult<String> resultNull = StringFunction.INSTANCE.invoke((Object) null);
 
     @Test
     void invokeNull() {
-        FunctionTestUtil.assertResult(stringFunction.invoke(null), null);
+        FunctionTestUtil.assertResult(resultNull, null);
+    }
+
+    @Test
+    void invokeNullReturnsCachedResult() {
+        FunctionTestUtil.assertResult(stringFunction.invoke((Object) null), null);
+        org.assertj.core.api.Assertions.assertThat(stringFunction.invoke((Object) null)).isSameAs(resultNull);
     }
 
     @Test
@@ -57,6 +64,12 @@ class StringFunctionTest {
     @Test
     void invokeString() {
         FunctionTestUtil.assertResult(stringFunction.invoke("test"), "test");
+    }
+
+    @Test
+    void invokeStringDoesNotChangeValue() {
+        String value = "test";
+        FunctionTestUtil.assertResult(stringFunction.invoke(value), value);
     }
 
     @Test

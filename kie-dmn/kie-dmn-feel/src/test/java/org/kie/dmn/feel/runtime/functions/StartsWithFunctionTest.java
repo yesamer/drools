@@ -53,4 +53,28 @@ class StartsWithFunctionTest {
         FunctionTestUtil.assertResult(startsWithFunction.invoke("test", "tt"), false);
         FunctionTestUtil.assertResult(startsWithFunction.invoke("test", "ttest"), false);
     }
+
+    @Test
+    void invokeCaseSensitive() {
+        // FEEL starts with() is case-sensitive
+        FunctionTestUtil.assertResult(startsWithFunction.invoke("test", "TE"), false);
+        FunctionTestUtil.assertResult(startsWithFunction.invoke("TEST", "te"), false);
+        FunctionTestUtil.assertResult(startsWithFunction.invoke("Test", "Test"), true);
+    }
+
+    @Test
+    void invokeNonAsciiMatch() {
+        // BMP non-ASCII: é is a single code point / char
+        FunctionTestUtil.assertResult(startsWithFunction.invoke("élan", "é"), true);
+        FunctionTestUtil.assertResult(startsWithFunction.invoke("élan", "E"), false);
+        FunctionTestUtil.assertResult(startsWithFunction.invoke("café", "caf"), true);
+    }
+
+    @Test
+    void invokeSurrogatePairMatch() {
+        // supplementary characters (emoji): each is a surrogate pair in UTF-16
+        FunctionTestUtil.assertResult(startsWithFunction.invoke("👋🌍🔥", "👋"), true);
+        FunctionTestUtil.assertResult(startsWithFunction.invoke("👋🌍🔥", "🌍"), false);
+        FunctionTestUtil.assertResult(startsWithFunction.invoke("👋🌍🔥", "xyz"), false);
+    }
 }

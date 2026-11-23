@@ -27,6 +27,8 @@ public class SubstringBeforeFunction
 
     public static final SubstringBeforeFunction INSTANCE = new SubstringBeforeFunction();
 
+    private static final FEELFnResult<String> RESULT_EMPTY = FEELFnResult.ofResult( "" );
+
     private SubstringBeforeFunction() {
         super( "substring before" );
     }
@@ -43,7 +45,7 @@ public class SubstringBeforeFunction
         if ( index > 0 ) {
             return FEELFnResult.ofResult( string.substring( 0, index ) );
         } else {
-            return FEELFnResult.ofResult( "" );
+            return RESULT_EMPTY;
         }
     }
 

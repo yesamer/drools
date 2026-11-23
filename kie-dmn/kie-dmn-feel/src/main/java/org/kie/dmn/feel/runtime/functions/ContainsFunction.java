@@ -27,6 +27,9 @@ public class ContainsFunction
 
     public static final ContainsFunction INSTANCE = new ContainsFunction();
 
+    private static final FEELFnResult<Boolean> RESULT_TRUE  = FEELFnResult.ofResult(Boolean.TRUE);
+    private static final FEELFnResult<Boolean> RESULT_FALSE = FEELFnResult.ofResult(Boolean.FALSE);
+
     private ContainsFunction() {
         super( "contains" );
     }
@@ -38,7 +41,7 @@ public class ContainsFunction
         if ( match == null ) {
             return FEELFnResult.ofError(new InvalidParametersEvent(Severity.ERROR, "match", "cannot be null"));
         }
-        
-        return FEELFnResult.ofResult(string.contains(match));
+
+        return string.contains(match) ? RESULT_TRUE : RESULT_FALSE;
     }
 }
