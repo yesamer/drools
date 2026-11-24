@@ -82,7 +82,7 @@
     <version.apache.commons.commons-compress>1.28.0</version.apache.commons.commons-compress>
     <version.archunit.junit5>1.4.0</version.archunit.junit5>
     <!-- plugin used to enforce architectural constraints -->
-    <version.archunit.maven.plugin>4.0.2</version.archunit.maven.plugin>
+    <version.archunit.maven.plugin>5.0.0</version.archunit.maven.plugin>
     <version.artifact.transfer>0.9.1</version.artifact.transfer>
     <version.asciidoctor-maven-plugin>2.0.0-RC.1</version.asciidoctor-maven-plugin>
     <version.at.yawk.lz4.java>1.11.4</version.at.yawk.lz4.java>
