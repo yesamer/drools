@@ -56,7 +56,11 @@
     <java.module.name/>
     <latestReleasedVersionFromThisBranch>notYetReleased</latestReleasedVersionFromThisBranch>
     <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+    <!-- Javadoc is disabled by default; modules that publish a javadoc jar must set this property to false. -->
     <maven.compiler.release>17</maven.compiler.release>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <maven.javadoc.skip>true</maven.javadoc.skip>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!--suppress UnresolvedMavenProperty -->
     <project.root.dir>${maven.multiModuleProjectDirectory}</project.root.dir>
@@ -94,12 +98,19 @@
     <version.com.github.eirslett>1.15.1</version.com.github.eirslett>
     <version.com.github.haifengl.smile>1.5.2</version.com.github.haifengl.smile>
     <version.com.github.javaparser>3.27.0</version.com.github.javaparser>
+    <!-- Override zstd-jni to match quarkus-bom:3.33.4 (1.5.7-16).
+         kafka-clients:4.1.2 bundles zstd-jni:1.5.6-10 directly. Quarkus modules receive
+         1.5.7-16 via the Quarkus BOM, but Spring Boot modules (no Quarkus BOM import),
+         the Maven Plugin, and jBPM Tools Maven resolve the older bundled version instead.
+         Pinning here enforces a consistent version across all module types in this build.
+         Remove when kafka-clients bundles zstd-jni >= 1.5.7-16. -->
+    <version.com.github.luben.zstd-jni>1.5.7-16</version.com.github.luben.zstd-jni>
     <!-- replaces findbugs-maven-plugin -->
     <version.com.github.spotbugs-maven-plugin>4.9.8.3</version.com.github.spotbugs-maven-plugin>
     <version.com.github.victools>4.37.0</version.com.github.victools>
     <version.com.google.collections>1.0</version.com.google.collections>
     <version.com.google.gson>2.13.2</version.com.google.gson>
-    <version.com.google.guava>33.5.0-jre</version.com.google.guava>
+    <version.com.google.guava>33.8.0-jre</version.com.google.guava>
     <version.com.google.protobuf>3.25.5</version.com.google.protobuf>
     <version.com.graphql-java>25.0</version.com.graphql-java>
     <version.com.graphql-java-extended-scalars>24.0</version.com.graphql-java-extended-scalars>
@@ -140,7 +151,7 @@
     <version.io.fabric8>7.3.1</version.io.fabric8>
     <version.io.fabric8.kubernetes-client>7.3.1</version.io.fabric8.kubernetes-client>
     <version.io.grpc>1.76.0</version.io.grpc>
-    <version.io.micrometer>1.16.7</version.io.micrometer>
+    <version.io.micrometer>1.17.1</version.io.micrometer>
     <version.io.netty>4.1.138.Final</version.io.netty>
     <version.io.opentelemetry>1.0.0-alpha</version.io.opentelemetry>
     <version.io.rest-assured>5.5.6</version.io.rest-assured>
@@ -172,19 +183,20 @@
     <version.jakarta.validation-api>3.1.1</version.jakarta.validation-api>
     <version.jakarta.ws.rs>3.1.0</version.jakarta.ws.rs>
     <version.jakarta.xml.bind-api>4.0.4</version.jakarta.xml.bind-api>
+    <version.japicmp.maven.plugin>0.18.3</version.japicmp.maven.plugin>
     <version.javax.inject>1</version.javax.inject>
     <version.jaxb2-maven-plugin>2.2</version.jaxb2-maven-plugin>
     <!-- JDepend plugin -->
     <version.jdepend.maven.plugin>2.0</version.jdepend.maven.plugin>
     <!-- DROOLS-7140 Drools 8 enforce JDK and Maven versions as a rule -->
     <version.jdk>${maven.compiler.release}</version.jdk>
-    <!-- JUnit 4 API for legacy test classes that still use org.junit.* annotations.
-         junit-vintage-engine (part of JUnit 6) runs them on the JUnit Platform. -->
+    <!-- JUnit 4 API kept only for fixtures / transitive exclusions that still reference junit:junit.
+         Prefer org.junit.jupiter / version.org.junit for new code. -->
     <version.junit>4.13.2</version.junit>
     <version.lifecycle-mapping>1.0.0</version.lifecycle-mapping>
     <version.maven>${version.org.apache.maven}</version.maven>
     <!-- These are added as part of the migration from JBoss to Apache parent pom.xml. They may be extracted to a KIE parent bom. -->
-    <version.maven-javadoc-plugin.override>3.6.2</version.maven-javadoc-plugin.override>
+    <version.maven-javadoc-plugin>3.12.0</version.maven-javadoc-plugin>
     <!-- Note: following ones are two different plugins -->
     <version.maven.invoker>3.2.0</version.maven.invoker>
     <version.maven.min>3.8.1</version.maven.min>
@@ -206,13 +218,13 @@
     <!-- New and overwritten dependencies -->
     <!-- ################################################################################ -->
     <version.org.antlr4>4.13.2</version.org.antlr4>
-    <version.org.apache.ant>1.10.11</version.org.apache.ant>
+    <version.org.apache.ant>1.10.18</version.org.apache.ant>
     <version.org.apache.avro>1.12.1</version.org.apache.avro>
     <version.org.apache.commons>3.19.0</version.org.apache.commons>
     <version.org.apache.commons.csv>1.10.0</version.org.apache.commons.csv>
     <version.org.apache.commons.lang3>3.19.0</version.org.apache.commons.lang3>
     <version.org.apache.commons.math3>3.6.1</version.org.apache.commons.math3>
-    <version.org.apache.groovy>4.0.29</version.org.apache.groovy>
+    <version.org.apache.groovy>4.0.32</version.org.apache.groovy>
     <version.org.apache.httpcomponents.httpcore>4.4.16</version.org.apache.httpcomponents.httpcore>
     <version.org.apache.kafka>4.1.2</version.org.apache.kafka>
     <!-- CVE-2026-49844: poi-ooxml:5.4.1 pulls log4j-api:2.24.3 transitively via log4j-bom:2.24.3.
@@ -224,7 +236,7 @@
     <version.org.apache.maven.resolver>1.9.27</version.org.apache.maven.resolver>
     <version.org.apache.maven.wagon>3.5.3</version.org.apache.maven.wagon>
     <version.org.apache.openjpa>4.0.0</version.org.apache.openjpa>
-    <version.org.apache.opennlp>2.5.11</version.org.apache.opennlp>
+    <version.org.apache.opennlp>2.5.12</version.org.apache.opennlp>
     <version.org.apache.pdfbox>2.0.28</version.org.apache.pdfbox>
     <version.org.apache.poi>5.4.1</version.org.apache.poi>
     <version.org.apache.tomcat>6.0.53</version.org.apache.tomcat>
@@ -234,7 +246,7 @@
     <version.org.asciidoctor.asciidoctorj-pdf>1.5.0</version.org.asciidoctor.asciidoctorj-pdf>
     <version.org.assertj>3.27.7</version.org.assertj>
     <version.org.awaitility>4.3.0</version.org.awaitility>
-    <version.org.bouncycastle.bc.jdk18on>1.85</version.org.bouncycastle.bc.jdk18on>
+    <version.org.bouncycastle.bc.jdk18on>1.86</version.org.bouncycastle.bc.jdk18on>
     <version.org.codehaus.plexus.plexus-utils>3.6.1</version.org.codehaus.plexus.plexus-utils>
     <version.org.eclipse.jdt>3.44.0</version.org.eclipse.jdt>
     <version.org.eclipse.jetty>12.0.36</version.org.eclipse.jetty>
@@ -264,16 +276,17 @@
     <version.org.jpmml.model>1.6.4</version.org.jpmml.model>
     <version.org.json-unit-assertj>2.9.0</version.org.json-unit-assertj>
     <!-- JUnit 6: single version property for jupiter + platform + vintage artifacts. See version.junit above for the legacy JUnit 4 API. -->
-    <version.org.junit>6.0.3</version.org.junit>
+    <version.org.junit>6.1.3</version.org.junit>
     <version.org.keycloak>26.1.5</version.org.keycloak>
     <version.org.mapstruct>1.5.5.Final</version.org.mapstruct>
-    <version.org.mockito>5.18.0</version.org.mockito>
+    <version.org.mockito>5.24.0</version.org.mockito>
     <version.org.mongo>5.3.1</version.org.mongo>
     <version.org.mozilla.rhino>1.8.1</version.org.mozilla.rhino>
     <version.org.mvel>2.6.0-SNAPSHOT</version.org.mvel>
     <!-- Version of JMH -->
     <version.org.openjdk.jmh>1.21</version.org.openjdk.jmh>
-    <version.org.postgresql>42.7.12</version.org.postgresql>
+    <version.org.ow2.asm>9.11.1</version.org.ow2.asm>
+    <version.org.postgresql>42.7.14</version.org.postgresql>
     <version.org.powermock>2.0.9</version.org.powermock>
     <version.org.reactivestreams>1.0.4</version.org.reactivestreams>
     <version.org.reflections>0.10.2</version.org.reflections>
@@ -286,8 +299,16 @@
     <version.org.w3c.dom>2.3.0-jaxb-1.0.6</version.org.w3c.dom>
     <version.org.webjars.bootstrap>5.1.3</version.org.webjars.bootstrap>
     <version.org.webjars.jquery>3.6.0</version.org.webjars.jquery>
+    <!-- Override wildfly-elytron family to 2.8.5.Final.
+         infinispan-client-hotrod:16.0.x (all patches) and 16.1.x ship wildfly-elytron at 2.7.0.Final/2.7.1.Final.
+         Quarkus modules resolve 2.8.5.Final via the Quarkus BOM, but non-Quarkus modules
+         (Spring Boot Infinispan persistence, Drools Reliability Infinispan, KIE Add-Ons Persistence
+         Infinispan) get 2.7.0.Final without these pins.
+         Remove when infinispan is upgraded to >= 16.2.0 (first line to bundle Elytron >= 2.9.1.Final). -->
+    <version.org.wildfly.elytron>2.8.5.Final</version.org.wildfly.elytron>
     <version.org.wiremock>3.13.2</version.org.wiremock>
     <version.org.wiremock.webhooks>3.0.4</version.org.wiremock.webhooks>
+    <version.org.xerial.snappy>1.1.10.12</version.org.xerial.snappy>
     <version.org.xmlunit>2.10.4</version.org.xmlunit>
     <version.org.xmlunit-core>2.10.4</version.org.xmlunit-core>
     <version.org.yaml.snakeyaml>2.6</version.org.yaml.snakeyaml>
@@ -302,6 +323,8 @@
     <version.plugin.testing.harness>4.0.0-alpha-2</version.plugin.testing.harness>
     <version.project-sources-maven-plugin>0.3</version.project-sources-maven-plugin>
     <version.property-maven-plugin>1.2.1</version.property-maven-plugin>
+    <version.revapi.maven.plugin>0.15.1</version.revapi.maven.plugin>
+    <version.revapi.java>0.28.1</version.revapi.java>
     <!-- OpenRewrite plugin -->
     <version.rewrite.maven.plugin>4.42.0</version.rewrite.maven.plugin>
     <version.rewrite.testing.frameworks>1.22.0</version.rewrite.testing.frameworks>
@@ -311,12 +334,35 @@
     <version.simple-jndi>0.11.4.1</version.simple-jndi>
     <version.sisu.inject>1.4.2</version.sisu.inject>
     <version.sonar-maven-plugin>3.6.0.1398</version.sonar-maven-plugin>
-    <version.tomcat.embed.core>11.0.25</version.tomcat.embed.core>
+    <version.tomcat.embed.core>11.0.26</version.tomcat.embed.core>
     <version.versions-maven-plugin>2.10.0</version.versions-maven-plugin>
     <version.wildfly-maven-plugin>1.2.0.Final</version.wildfly-maven-plugin>
     <version.xerces>2.12.2</version.xerces>
     <version.xml-maven-plugin>1.0</version.xml-maven-plugin>
+
+    <!-- Javadoc branding properties - can be overridden via -D flags or CI environment -->
+    <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
+    <javadoc.product.name>${project.name}</javadoc.product.name>
+    <javadoc.product.version>${project.version}</javadoc.product.version>
+    <javadoc.doctitle>${project.name} ${project.version} API</javadoc.doctitle>
+    <javadoc.windowtitle>${project.name} ${project.version} API</javadoc.windowtitle>
+    <javadoc.footer><![CDATA[Copyright &#169; ${project.inceptionYear}&#x2023;${maven.build.timestamp} Apache Software Foundation. All rights reserved.]]></javadoc.footer>
+    <javadoc.bottom><![CDATA[Copyright &#169; ${project.inceptionYear}&#x2023;${maven.build.timestamp} Apache Software Foundation. All rights reserved.]]></javadoc.bottom>
+
+    <!-- Latest released Apache KIE version for API compatibility checks -->
+    <kie.latest.released.version>10.2.0</kie.latest.released.version>
+
+    <!-- Revapi API Compatibility Check Configuration -->
+
+    <revapi.latestVersion>${kie.latest.released.version}</revapi.latestVersion>
+
+    <!-- JApiCmp API Compatibility Check Configuration -->
+
+    <japicmp.oldVersion.groupId>${project.groupId}</japicmp.oldVersion.groupId>
+    <japicmp.oldVersion.artifactId>${project.artifactId}</japicmp.oldVersion.artifactId>
+    <japicmp.oldVersion.version>${kie.latest.released.version}</japicmp.oldVersion.version>
   </properties>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -464,6 +510,17 @@
         <groupId>com.github.javaparser</groupId>
         <artifactId>javaparser-symbol-solver-core</artifactId>
         <version>${version.com.github.javaparser}</version>
+      </dependency>
+      <dependency>
+        <!-- Override zstd-jni to match quarkus-bom:3.33.4 (1.5.7-16).
+             kafka-clients:4.1.2 bundles zstd-jni:1.5.6-10 directly. Quarkus modules receive
+             1.5.7-16 via the Quarkus BOM, but Spring Boot modules (no Quarkus BOM import),
+             the Maven Plugin, and jBPM Tools Maven resolve the older bundled version instead.
+             Pinning here enforces a consistent version across all module types in this build.
+             Remove when kafka-clients bundles zstd-jni >= 1.5.7-16. -->
+        <groupId>com.github.luben</groupId>
+        <artifactId>zstd-jni</artifactId>
+        <version>${version.com.github.luben.zstd-jni}</version>
       </dependency>
       <dependency>
         <groupId>com.github.victools</groupId>
@@ -766,10 +823,20 @@
         <artifactId>grpc-util</artifactId>
         <version>${version.io.grpc}</version>
       </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-commons</artifactId>
+        <version>${version.io.micrometer}</version>
+      </dependency>
       <!-- Used by drools-metric -->
       <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-core</artifactId>
+        <version>${version.io.micrometer}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-observation</artifactId>
         <version>${version.io.micrometer}</version>
       </dependency>
       <dependency>
@@ -931,6 +998,17 @@
         <artifactId>json-schema-validator</artifactId>
         <version>${version.io.rest-assured}</version>
         <scope>test</scope>
+        <exclusions>
+          <!-- CVE fix: jackson-coreutils pulled transitively via json-schema-validator -->
+          <exclusion>
+            <groupId>com.github.java-json-tools</groupId>
+            <artifactId>jackson-coreutils</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.github.java-json-tools</groupId>
+            <artifactId>json-patch</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>io.rest-assured</groupId>
@@ -1057,6 +1135,15 @@
           <exclusion>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
+          </exclusion>
+          <!-- CVE fix: json-patch/jackson-coreutils pulled in transitively via swagger-compat-spec-parser -->
+          <exclusion>
+            <groupId>com.github.java-json-tools</groupId>
+            <artifactId>json-patch</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.github.java-json-tools</groupId>
+            <artifactId>jackson-coreutils</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -1884,6 +1971,17 @@
         <groupId>org.jboss.resteasy</groupId>
         <artifactId>resteasy-jackson2-provider</artifactId>
         <version>${version.org.jboss.resteasy}</version>
+        <exclusions>
+          <!-- CVE fix: no patched version of json-patch/jackson-coreutils exists -->
+          <exclusion>
+            <groupId>com.github.java-json-tools</groupId>
+            <artifactId>json-patch</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.github.java-json-tools</groupId>
+            <artifactId>jackson-coreutils</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.jboss.resteasy</groupId>
@@ -2033,6 +2131,31 @@
         <artifactId>nashorn-core</artifactId>
         <version>${version.nashorn}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.ow2.asm</groupId>
+        <artifactId>asm</artifactId>
+        <version>${version.org.ow2.asm}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.ow2.asm</groupId>
+        <artifactId>asm-analysis</artifactId>
+        <version>${version.org.ow2.asm}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.ow2.asm</groupId>
+        <artifactId>asm-commons</artifactId>
+        <version>${version.org.ow2.asm}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.ow2.asm</groupId>
+        <artifactId>asm-tree</artifactId>
+        <version>${version.org.ow2.asm}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.ow2.asm</groupId>
+        <artifactId>asm-util</artifactId>
+        <version>${version.org.ow2.asm}</version>
       </dependency>
       <dependency>
         <groupId>org.postgresql</groupId>
@@ -2220,6 +2343,24 @@
         <version>${version.org.webjars.jquery}</version>
       </dependency>
       <dependency>
+        <!-- Override wildfly-elytron-asn1 to 2.8.5.Final.
+             infinispan-client-hotrod:16.0.x/16.1.x transitively pulls wildfly-elytron-asn1:2.7.0.Final
+             via wildfly-elytron-sasl-gs2. See version.org.wildfly.elytron property comment above.
+             Remove when infinispan is upgraded to >= 16.2.0. -->
+        <groupId>org.wildfly.security</groupId>
+        <artifactId>wildfly-elytron-asn1</artifactId>
+        <version>${version.org.wildfly.elytron}</version>
+      </dependency>
+      <dependency>
+        <!-- Override wildfly-elytron-password-impl to 2.8.5.Final.
+             infinispan-client-hotrod:16.0.x/16.1.x transitively pulls wildfly-elytron-password-impl:2.7.0.Final
+             via wildfly-elytron-sasl-digest. See version.org.wildfly.elytron property comment above.
+             Remove when infinispan is upgraded to >= 16.2.0. -->
+        <groupId>org.wildfly.security</groupId>
+        <artifactId>wildfly-elytron-password-impl</artifactId>
+        <version>${version.org.wildfly.elytron}</version>
+      </dependency>
+      <dependency>
         <groupId>org.wiremock</groupId>
         <artifactId>wiremock-jetty12</artifactId>
         <version>${version.org.wiremock}</version>
@@ -2260,6 +2401,11 @@
         <artifactId>xmlunit-matchers</artifactId>
         <version>${version.org.xmlunit}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.xerial.snappy</groupId>
+        <artifactId>snappy-java</artifactId>
+        <version>${version.org.xerial.snappy}</version>
       </dependency>
       <dependency>
         <groupId>simple-jndi</groupId>
@@ -2549,6 +2695,18 @@
           </executions>
         </plugin>
         <plugin>
+          <groupId>org.revapi</groupId>
+          <artifactId>revapi-maven-plugin</artifactId>
+          <version>${version.revapi.maven.plugin}</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.revapi</groupId>
+              <artifactId>revapi-java</artifactId>
+              <version>${version.revapi.java}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
           <groupId>org.openrewrite.maven</groupId>
           <artifactId>rewrite-maven-plugin</artifactId>
           <version>${version.rewrite.maven.plugin}</version>
@@ -2588,9 +2746,6 @@
             <argLine>@{argLine} -Xmx1024m -Dfile.encoding=UTF-8 -Duser.language=en -Duser.region=US</argLine>
             <systemPropertyVariables>
               <apple.awt.UIElement>true</apple.awt.UIElement>
-              <org.uberfire.nio.git.daemon.enabled>false</org.uberfire.nio.git.daemon.enabled>
-              <org.uberfire.nio.git.ssh.enabled>false</org.uberfire.nio.git.ssh.enabled>
-              <org.uberfire.sys.repo.monitor.disabled>true</org.uberfire.sys.repo.monitor.disabled>
             </systemPropertyVariables>
           </configuration>
         </plugin>
@@ -2891,16 +3046,21 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>${version.maven-javadoc-plugin.override}</version>
+          <version>${version.maven-javadoc-plugin}</version>
           <configuration>
             <header><![CDATA[<b>${project.name} ${project.version}</b>]]></header>
-            <footer><![CDATA[<b>${project.name} ${project.version}</b>]]></footer>
             <archive>
               <index>true</index>
             </archive>
             <quiet>true</quiet>
             <doclint>none</doclint>
-            <legacyMode>true</legacyMode>
+            <tags>
+              <tag>
+                <name>apiNote</name>
+                <placement>a</placement>
+                <head>API Note:</head>
+              </tag>
+            </tags>
           </configuration>
         </plugin>
         <plugin>
@@ -3118,22 +3278,7 @@
               </execution>
             </executions>
           </plugin>-->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-                <phase>package</phase>
-                <configuration>
-                  <source>${maven.compiler.release}</source>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
+       </plugins>
       </build>
     </profile>
     <!--

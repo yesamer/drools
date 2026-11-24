@@ -66,8 +66,6 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.kie.kogito.usertask.impl.lifecycle.DefaultUserTaskLifeCycle.CLAIM;
 import static org.kie.kogito.usertask.impl.lifecycle.DefaultUserTaskLifeCycle.COMPLETE;
 import static org.kie.kogito.usertask.impl.lifecycle.DefaultUserTaskLifeCycle.RELEASE;
@@ -278,6 +276,66 @@ public class UserTaskIT extends AbstractCodegenIT {
 
         processInstance.abort();
         assertThat(processInstance.status()).isEqualTo(ProcessInstance.STATE_ABORTED);
+    }
+
+    @Test
+    public void testDuplicateTaskNamesProcessExecution() throws Exception {
+        Application app = generateCodeProcessesOnly("usertask/DuplicateTaskNamesProcess.bpmn");
+        assertThat(app).isNotNull();
+        app.config().get(UserTaskConfig.class).userTaskEventListeners().listeners().add(new UserTaskKogitoWorkItemHandlerProcessListener(app.get(Processes.class)));
+
+        List<UserTaskInstance> completedUserTasks = new ArrayList<>();
+        app.config().get(UserTaskConfig.class).userTaskEventListeners().listeners().add(new UserTaskEventListener() {
+            @Override
+            public void onUserTaskState(org.kie.kogito.usertask.events.UserTaskStateEvent event) {
+                if (event.getNewStatus().isTerminate()) {
+                    completedUserTasks.add(event.getUserTaskInstance());
+                }
+            }
+        });
+
+        Process<? extends Model> p = app.get(Processes.class).processById("DuplicateTasksProcess");
+
+        Model m = p.createModel();
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("varA", "initialA");
+        parameters.put("varB", "initialB");
+        m.fromMap(parameters);
+
+        ProcessInstance<?> processInstance = p.createInstance(m);
+        processInstance.start();
+
+        assertThat(processInstance.status()).isEqualTo(ProcessInstance.STATE_ACTIVE);
+
+        // First task
+        List<WorkItem> workItems = processInstance.workItems(securityPolicy);
+        assertThat(workItems).hasSize(1);
+        WorkItem wi1 = workItems.get(0);
+        assertThat(wi1.getName()).isEqualTo("SharedTaskName");
+        assertThat(wi1.getParameters()).containsEntry("varA", "initialA");
+
+        processInstance.completeWorkItem(wi1.getId(), Collections.singletonMap("varA", "updatedA"), securityPolicy);
+        assertThat(processInstance.status()).isEqualTo(ProcessInstance.STATE_ACTIVE);
+
+        // Second task sharing the same taskName
+        workItems = processInstance.workItems(securityPolicy);
+        assertThat(workItems).hasSize(1);
+        WorkItem wi2 = workItems.get(0);
+        assertThat(wi2.getName()).isEqualTo("SharedTaskName");
+        assertThat(wi2.getParameters()).containsEntry("varB", "initialB");
+
+        processInstance.completeWorkItem(wi2.getId(), Collections.singletonMap("varB", "updatedB"), securityPolicy);
+        assertThat(processInstance.status()).isEqualTo(ProcessInstance.STATE_COMPLETED);
+
+        Model result = (Model) processInstance.variables();
+        Map<String, Object> resultMap = result.toMap();
+        assertThat(resultMap).containsEntry("varA", "updatedA");
+        assertThat(resultMap).containsEntry("varB", "updatedB");
+
+        // Verify that completed/obsoleted user task instances received the outputs from work item completion
+        assertThat(completedUserTasks).hasSize(2);
+        assertThat(completedUserTasks.get(0).getOutputs()).containsEntry("varA", "updatedA");
+        assertThat(completedUserTasks.get(1).getOutputs()).containsEntry("varB", "updatedB");
     }
 
     @Test
@@ -516,9 +574,8 @@ public class UserTaskIT extends AbstractCodegenIT {
         assertThat(userTaskInstances).isNotNull().hasSize(1);
         UserTaskInstance ut_2 = userTaskInstances.get(0);
         // attempt to claim task with excluded user (manager)
-        assertThrows(UserTaskInstanceNotAuthorizedException.class, () -> {
-            ut_2.transition(CLAIM, emptyMap(), IdentityProviders.of("manager", singletonList("managers")));
-        });
+        assertThatExceptionOfType(UserTaskInstanceNotAuthorizedException.class)
+                .isThrownBy(() -> ut_2.transition(CLAIM, emptyMap(), IdentityProviders.of("manager", singletonList("managers"))));
         // claim and complete task with different user (admin)
         ut_2.transition(CLAIM, emptyMap(), IdentityProviders.of("admin", singletonList("managers")));
         ut_2.transition(COMPLETE, emptyMap(), IdentityProviders.of("admin", singletonList("managers")));
@@ -1183,7 +1240,7 @@ public class UserTaskIT extends AbstractCodegenIT {
         ProcessInstance<? extends Model> otherProcessInstance = p.createInstance(businessKey, m);
         assertThat(otherProcessInstance.id()).isNotEqualTo(processInstance.id());
         assertThat(otherProcessInstance.businessKey()).isEqualTo(processInstance.businessKey()).isEqualTo(businessKey);
-        assertTrue(latch.await(5L, TimeUnit.SECONDS));
+        assertThat(latch.await(5L, TimeUnit.SECONDS)).isTrue();
         latch.await(5L, TimeUnit.SECONDS);
         String subject = "Not completedTask is ready for ${owners[0].id}";
         String body = "my body!!!";
@@ -1271,7 +1328,7 @@ public class UserTaskIT extends AbstractCodegenIT {
         ProcessInstance<? extends Model> otherProcessInstance = p.createInstance(businessKey, m);
         assertThat(otherProcessInstance.id()).isNotEqualTo(processInstance.id());
         assertThat(otherProcessInstance.businessKey()).isEqualTo(processInstance.businessKey()).isEqualTo(businessKey);
-        assertTrue(latch.await(5L, TimeUnit.SECONDS));
+        assertThat(latch.await(5L, TimeUnit.SECONDS)).isTrue();
 
     }
 
